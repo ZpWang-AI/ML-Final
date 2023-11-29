@@ -1,0 +1,17 @@
+*.sh
+*.zip
+*.ipynb
+*.log
+_*
+*tmp*
+*test*
+
+__pycache__
+logs
+.vscode
+.gitignore
+nohup.out
+
+# ==============================
+
+!.gitignore
