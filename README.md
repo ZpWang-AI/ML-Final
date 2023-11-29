@@ -2,10 +2,10 @@
 
 This is the final project for the machine learning course.
 
-# Distributions
+## Distributions
 
 Refer to the Issue.
 
-# File Structure
+## File Structure
 
-TODO
+% TODO
