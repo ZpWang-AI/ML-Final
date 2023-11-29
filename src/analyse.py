@@ -78,8 +78,6 @@ class CustomArgs:
         if test_setting:
             self.version = 'test'
             self.mini_dataset = True
-            self.data_augmentation_secondary_label = False
-            self.data_augmentation_connective_arg2 = False
             self.training_iteration = 2
             self.train_batch_size = 8
             self.eval_batch_size = 8
@@ -118,22 +116,22 @@ class CustomArgs:
         else:
             return 5000
     
-    def prepare_gpu(self, target_mem_mb=10000, gpu_cnt=None):
-        if not self.cuda_id:
-            if target_mem_mb < 0:
-                target_mem_mb = self.estimate_cuda_memory()
-            if gpu_cnt is None:
-                gpu_cnt = self.cuda_cnt
+    # def prepare_gpu(self, target_mem_mb=10000, gpu_cnt=None):
+    #     if not self.cuda_id:
+    #         if target_mem_mb < 0:
+    #             target_mem_mb = self.estimate_cuda_memory()
+    #         if gpu_cnt is None:
+    #             gpu_cnt = self.cuda_cnt
 
-            from gpuManager import GPUManager
-            free_gpu_ids = GPUManager.get_some_free_gpus(
-                gpu_cnt=gpu_cnt, 
-                target_mem_mb=target_mem_mb,
-            )
-            os.environ["CUDA_VISIBLE_DEVICES"] = free_gpu_ids
-            self.cuda_id = free_gpu_ids
-            print(f'=== CUDA {free_gpu_ids} ===')
-        return self.cuda_id
+    #         from gpuManager import GPUManager
+    #         free_gpu_ids = GPUManager.get_some_free_gpus(
+    #             gpu_cnt=gpu_cnt, 
+    #             target_mem_mb=target_mem_mb,
+    #         )
+    #         os.environ["CUDA_VISIBLE_DEVICES"] = free_gpu_ids
+    #         self.cuda_id = free_gpu_ids
+    #         print(f'=== CUDA {free_gpu_ids} ===')
+    #     return self.cuda_id
     
     def recalculate_eval_log_steps(self):
         self.real_batch_size = self.train_batch_size*self.gradient_accumulation_steps*self.cuda_cnt
