@@ -2,7 +2,7 @@
 
 This is the final project for the machine learning course.
 
-## Distributions
+## Contributions
 
 Refer to the Issue.
 
