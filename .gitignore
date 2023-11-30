@@ -15,3 +15,5 @@ nohup.out
 # ==============================
 
 !.gitignore
+data/**/*.csv
+!data/data.zip
