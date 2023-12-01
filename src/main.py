@@ -7,9 +7,10 @@ import pandas as pd
 import numpy as np
 import time
 
+from typing import Any
 from typing import *
 from pathlib import Path as path
-from transformers import TrainingArguments, set_seed
+from transformers import set_seed
 
 from utils import catch_and_record_error
 from arguments import CustomArgs
@@ -17,10 +18,7 @@ from logger import CustomLogger
 from data import CustomData, DataLoader
 from model.LSTM import LSTM
 from metrics import ComputeMetrics
-from callbacks import CustomCallback
 from analyze import analyze_metrics_json
-
-os.environ['TOKENIZERS_PARALLELISM'] = 'false'
 
 LOG_FILENAME_DICT = {
     'hyperparams': 'hyperparams.json',
@@ -48,28 +46,51 @@ class Trainer:
         self.device = torch.device('cuda:0') if args.cuda_id else torch.device('cpu')
         model.to(self.device)
         data.prepare_dataloader(train_batch_size=args.train_batch_size, eval_batch_size=args.eval_batch_size)
-        total_iters = len(data.train_dataloader)*args.epochs
+        train_batch = len(data.train_dataloader)
         optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
-        lr_scheduler = torch.optim.lr_scheduler.LinearLR(optimizer, total_iters=total_iters)
+        lr_scheduler = torch.optim.lr_scheduler.LinearLR(optimizer, total_iters=train_batch*args.epochs)
         
         batch = 0
         model.train()
+        total_loss, log_loss = 0, 0
+        best_metrics = {}
+        
         for _ in range(args.epochs):
             for inputs in data.train_dataloader:
                 batch += 1
                 
                 inputs = inputs.to(self.device)
                 output = model(inputs)
-                loss = output['loss']
+                loss:torch.Tensor = output['loss']
                 loss.backward()
                 optimizer.step()
                 lr_scheduler.step()
                 optimizer.zero_grad()
                 
+                total_loss += loss
+                log_loss += loss
+                if not batch % args.log_steps:
+                    cur_log = {
+                        'loss': float((log_loss/args.log_steps).cpu()),
+                        'lr': lr_scheduler.get_lr(),
+                        'epoch': batch/train_batch,
+                    }
+                    logger.log_json(cur_log, LOG_FILENAME_DICT['loss'], log_info=True, mode='a')
                 if not batch % args.eval_steps:
                     metrics = self.evaluate(model, data.dev_dataloader, compute_metrics)
-                if not batch % args.log_steps:
-                    pass
+                    if metrics['MSE'] > best_metrics['MSE']:
+                        # TODO: save
+                        pass
+                    for k,v in metrics.items():
+                        best_metrics[k] = max(best_metrics[k], v)
+                    logger.log_json(metrics, LOG_FILENAME_DICT['dev'], log_info=True, mode='a')
+                    logger.log_json(best_metrics, LOG_FILENAME_DICT['best'], log_info=False, mode='w')
+        
+        # TODO: model load
+        test_metric = self.evaluate(model, data.test_dataloader, compute_metrics)
+        logger.log_json(test_metric, LOG_FILENAME_DICT['test'], log_info=True, mode='w')
+        
+        return {'loss': float((total_loss/batch).cpu()), 'epoch':batch/train_batch}
     
     def evaluate(
         self,
@@ -121,209 +142,47 @@ class Trainer:
         
         start_time = time.time()
         
-        self.train(args, model, data, compute_metrics, logger)
+        train_output = self.train(
+            args=args,
+            model=model,
+            data=data,
+            compute_metrics=compute_metrics,
+            logger=logger,
+        )
 
-        total_runtime = time.time()-start_time
-        with open(logger.log_dir/LOG_FILENAME_DICT['output'], 'r', encoding='utf8')as f:
-            train_output = json.load(f)
-            train_output['train_runtime'] = total_runtime
-        logger.log_json(train_output, LOG_FILENAME_DICT['output'], False)
+        train_output['train_runtime'] = time.time()-start_time
+        logger.log_json(train_output, LOG_FILENAME_DICT['output'], log_info=True, mode='w')
         
         if not args.save_ckpt:
             shutil.rmtree(args.output_dir)
 
-
-
-def train_func(
-    args:CustomArgs, 
-    training_args:TrainingArguments, 
-    logger:CustomLogger,
-    data:CustomData, 
-    model:nn.Module, 
-    compute_metrics:ComputeMetrics,
-):
-    callback = CustomCallback(
-        logger=logger, 
-        metric_names=compute_metrics.metric_names,
-    )
-    callback.best_metric_file_name = LOG_FILENAME_DICT['best']
-    callback.dev_metric_file_name = LOG_FILENAME_DICT['dev']
-    callback.train_loss_file_name = LOG_FILENAME_DICT['loss']
-    
-    trainer = Trainer(
-        model=model, 
-        args=training_args, 
-        tokenizer=data.tokenizer, 
-        compute_metrics=compute_metrics,
-        callbacks=[callback],
-        data_collator=data.data_collator,
+    def main(self, args:CustomArgs):
+        from copy import deepcopy
         
-        train_dataset=data.train_dataset,
-        eval_dataset=data.dev_dataset, 
-    )
-    callback.trainer = trainer
-
-    train_output = trainer.train().metrics
-    logger.log_json(train_output, LOG_FILENAME_DICT['output'], log_info=True)
-    final_state_fold = path(training_args.output_dir)/'final'
-    trainer.save_model(final_state_fold)
-    
-    # do test 
-    callback.evaluate_testdata = True
-    
-    test_metrics = {}
-    for metric_ in compute_metrics.metric_names:
-        load_ckpt_dir = path(training_args.output_dir)/f'checkpoint_best_{metric_}'
-        if load_ckpt_dir.exists():
-            model.load_state_dict(torch.load(load_ckpt_dir/'pytorch_model.bin'))
-            evaluate_output = trainer.evaluate(eval_dataset=data.test_dataset)
-            test_metrics['test_'+metric_] = evaluate_output['eval_'+metric_]
-            
-    logger.log_json(test_metrics, LOG_FILENAME_DICT['test'], log_info=True)                
-    # model.load_state_dict(torch.load(final_state_fold/'pytorch_model.bin'))
-    
-    # if args.data_name == 'conll':
-    #     test_metrics = {}
-    #     for metric_ in compute_metrics.metric_names:
-    #         load_ckpt_dir = path(args.output_dir)/f'checkpoint_best_{metric_}'
-    #         if load_ckpt_dir.exists():
-    #             evaluate_output = trainer.evaluate(eval_dataset=data.blind_test_dataset)
-    #             test_metrics['test_'+metric_] = evaluate_output['eval_'+metric_]
-                
-    #     logger.log_json(test_metrics, LOG_FILENAME_DICT['blind test'], log_info=True)    
-
-    return trainer, callback
-
-
-def main_one_iteration(args:CustomArgs, data:CustomData, training_iter_id=0):
-    # === prepare === 
-    if 1:
-        # seed
-        args.seed += training_iter_id
-        set_seed(args.seed)
-        # path
-        train_fold_name = f'training_iteration_{training_iter_id}'
-        args.output_dir = os.path.join(args.output_dir, train_fold_name)
-        args.log_dir = os.path.join(args.log_dir, train_fold_name)
+        args.complete_path()
         args.check_path()
         
-        training_args = TrainingArguments(
-            output_dir = args.output_dir,
-            
-            # strategies of evaluation, logging, save
-            evaluation_strategy = "steps", 
-            eval_steps = args.eval_steps,
-            logging_strategy = 'steps',
-            logging_steps = args.log_steps,
-            save_strategy = 'no',
-            # save_strategy = 'epoch',
-            # save_total_limit = 1,
-            
-            # optimizer and lr_scheduler
-            optim = 'adamw_torch',
-            learning_rate = args.learning_rate,
-            weight_decay = args.weight_decay,
-            lr_scheduler_type = 'linear',
-            warmup_ratio = args.warmup_ratio,
-            
-            # epochs and batches 
-            num_train_epochs = args.epochs, 
-            max_steps = args.max_steps,
-            per_device_train_batch_size = args.train_batch_size,
-            per_device_eval_batch_size = args.eval_batch_size,
-            gradient_accumulation_steps = args.gradient_accumulation_steps,
+        data = CustomData(
+            data_path=args.data_path,
+            mini_dataset=args.mini_dataset,
         )
+        args.trainset_size, args.devset_size, args.testset_size = map(len, [
+            data.train_dataset, data.dev_dataset, data.test_dataset
+        ])
         
-        logger = CustomLogger(
-            log_dir=args.log_dir,
-            logger_name=f'{args.cur_time}_iter{training_iter_id}_logger',
-            print_output=True,
-        )
+        main_logger = CustomLogger(args.log_dir, logger_name=f'{args.cur_time}_main_logger', print_output=True)  
+        main_logger.log_json(dict(args), LOG_FILENAME_DICT['hyperparams'], log_info=True)
         
-        model = CustomModel(
-            model_name_or_path=args.model_name_or_path,
-            num_labels=data.num_labels,
-            cache_dir=args.cache_dir,
-            loss_type=args.loss_type,
-        )
-        
-        compute_metrics = ComputeMetrics(label_list=data.label_list)
-        
-        train_evaluate_kwargs = {
-            'args': args,
-            'training_args': training_args,
-            'model': model,
-            'data': data,
-            'compute_metrics': compute_metrics,
-            'logger': logger,
-        }
-    
-    logger.log_json(dict(args), LOG_FILENAME_DICT['hyperparams'], log_info=False)
-
-    # === train ===
-    
-    start_time = time.time()
-    
-    train_func(**train_evaluate_kwargs)
-
-    total_runtime = time.time()-start_time
-    with open(logger.log_dir/LOG_FILENAME_DICT['output'], 'r', encoding='utf8')as f:
-        train_output = json.load(f)
-        train_output['train_runtime'] = total_runtime
-    logger.log_json(train_output, LOG_FILENAME_DICT['output'], False)
-    
-    if not args.save_ckpt:
-        shutil.rmtree(args.output_dir)
-
-
-def main(args:CustomArgs, training_iter_id=-1):
-    """
-    params:
-        args: CustomArgs
-        training_iter_id: int ( set t=args.training_iteration )
-            -1: auto train t iterations
-            0, 1, ..., t-1: train a specific iteration
-            t: calculate average of metrics
-    """
-    from copy import deepcopy
-    
-    args.complete_path()
-    args.check_path()
-    
-    data = CustomData(
-        data_path=args.data_path,
-        data_name=args.data_name,
-        model_name_or_path=args.model_name_or_path,
-        cache_dir=args.cache_dir,
-        label_level=args.label_level,
-        secondary_label_weight=args.secondary_label_weight,
-        mini_dataset=args.mini_dataset,
-        data_augmentation_secondary_label=args.data_augmentation_secondary_label,
-        data_augmentation_connective_arg2=args.data_augmentation_connective_arg2,
-    )
-    args.trainset_size, args.devset_size, args.testset_size = map(len, [
-        data.train_dataset, data.dev_dataset, data.test_dataset
-    ])
-    args.recalculate_eval_log_steps()
-    
-    main_logger = CustomLogger(args.log_dir, logger_name=f'{args.cur_time}_main_logger', print_output=True)
-    if training_iter_id < 0 or training_iter_id == 0:    
-        main_logger.log_json(dict(args), log_file_name=LOG_FILENAME_DICT['hyperparams'], log_info=True)
-    
-    try:
-        if training_iter_id < 0:
-            for _training_iter_id in range(args.training_iteration):
-                main_one_iteration(deepcopy(args), data=data, training_iter_id=_training_iter_id)
+        try:
+            for training_iter_id in range(args.training_iteration):
+                self.main_one_iteration(deepcopy(args), data=data, training_iter_id=training_iter_id)
             if not args.save_ckpt:
                 shutil.rmtree(args.output_dir)
-        else:
-            main_one_iteration(deepcopy(args), data=data, training_iter_id=training_iter_id)
-    except Exception as e:
-        error_file = main_logger.log_dir/'error.out'
-        catch_and_record_error(error_file)
-        exit(1)
-    
-    if training_iter_id < 0 or training_iter_id == args.training_iteration:
+        except Exception as _:
+            error_file = main_logger.log_dir/'error.out'
+            catch_and_record_error(error_file)
+            exit(1)
+        
         # calculate average
         for json_file_name in LOG_FILENAME_DICT.values():
             if json_file_name == LOG_FILENAME_DICT['hyperparams']:
@@ -356,7 +215,7 @@ if __name__ == '__main__':
         return args
     
     args = local_test_args()
-    main(args)
+    Trainer().main(args)
     
     # args = CustomArgs()
     # main(args)
