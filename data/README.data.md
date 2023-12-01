@@ -1,5 +1,6 @@
 ### 数据集说明
 #### 数据特征说明
+* time: 表示当前时间，由date得到
 * HUFL: High UseFul Load
 * HULL: High UseLess Load
 * MUFL: Middle UseFul Load
@@ -15,6 +16,6 @@
 
 #### 数据集构建
 * 根据要求，根据过去96小时的全部数据预测将来96和336小时的全部数据
-* 构建数据集EETh1_96_96.csv和EETh1_96_336.csv, 位于/data/train_data
-* 其中EETh1_96_96.csv 的维度为(17229, 1344), EETh1_96_336.csv的维度为(16989, 3024)
-* /data_processing_demo 提供了一个将数据集划分成训练集，验证集，测试集的样例
+* 构建数据集data_96-96和data_96-336, 分别包含训练集，验证集和测试集
+* /creat_dataset.py 提供了划分数据集的代码
+* /data_processing_demo.py 提供了一个将数据集划分成训练集，验证集，测试集的样例
