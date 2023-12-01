@@ -8,7 +8,7 @@ from typing import Any
 from typing import *
 from pathlib import Path as path
 from transformers import AutoTokenizer, DataCollatorWithPadding
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
     
     
 class CustomDataset(Dataset):
@@ -39,6 +39,11 @@ class CustomData:
         mini_dataset=False,
         *args, **kwargs,
     ):
+        # feature
+        self.feature_list = ['HUFL', 'HULL', 'MUFL', 'MULL', 'LUFL', 'LULL', 'OT']
+        self.feature_num = len(self.feature_list)
+        self.feature_map = {f:p for p,f in enumerate(self.feature_list)}
+
         # args
         self.mini_dataset = mini_dataset
         
@@ -52,11 +57,6 @@ class CustomData:
             self.dev_df = self.dev_df.iloc[:16]
             self.test_df = self.test_df.iloc[:16]
 
-        # feature
-        self.feature_list = ['HUFL', 'HULL', 'MUFL', 'MULL', 'LUFL', 'LULL', 'OT']
-        self.feature_num = len(self.feature_list)
-        self.feature_map = {f:p for p,f in enumerate(self.feature_list)}
-        
         # dataset
         self.train_dataset = CustomDataset(self.train_df)
         self.dev_dataset = CustomDataset(self.dev_df)
@@ -64,7 +64,35 @@ class CustomData:
         
         # data collator
         self.data_collator = CustomDataCollator()
-              
+        
+        # dataloader
+        self.train_dataloader:DataLoader = None
+        self.dev_dataloader:DataLoader = None
+        self.test_dataloader:DataLoader = None
+
+    def prepare_dataloader(self, train_batch_size, eval_batch_size):
+        self.train_dataloader = DataLoader(
+            self.train_dataset,
+            batch_size=train_batch_size,
+            shuffle=True,
+            collate_fn=self.data_collator,
+            drop_last=False,
+        )
+        self.dev_dataset = DataLoader(
+            self.dev_dataset,
+            batch_size=eval_batch_size,
+            shuffle=False,
+            collate_fn=self.data_collator,
+            drop_last=False,
+        )
+        self.dev_dataset = DataLoader(
+            self.test_dataset,
+            batch_size=eval_batch_size,
+            shuffle=False,
+            collate_fn=self.data_collator,
+            drop_last=False,
+        )
+       
               
 if __name__ == '__main__':
     import os, time
@@ -75,8 +103,8 @@ if __name__ == '__main__':
         r'D:\0--data\研究生学务\研一上\机器学习\Final\tmp\data_96-96',
         mini_dataset=False,
     )
-    batch = [sample_dataset.train_dataset[p]for p in range(3)]
-    batch = sample_dataset.data_collator(batch)
+    sample_dataset.prepare_dataloader(train_batch_size=3, eval_batch_size=4)
+    batch = iter(sample_dataset.train_dataloader).__next__()
     print('batch shape', batch.shape, '\n')
     print(f'time: {time.time()-start_time:.2f}s')
     print('train size', len(sample_dataset.train_dataset))
