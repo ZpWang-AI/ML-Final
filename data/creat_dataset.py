@@ -35,8 +35,9 @@ dataset = read_csv(file, header=0, index_col=0)
 
 # create column time
 times = [int(i[11:13]) for i in dataset.index]
-dataset.insert(0, 'time', times)
+dataset.insert(7, 'time', times)
 
+print(dataset.head(5))
 values = dataset.values
 # ensure all data is float
 values = values.astype('float32')
@@ -54,6 +55,6 @@ for n_out in [96, 336]:
     for t in ['train', 'dev', 'test']:
         value = type2value[t]
         reframed = series_to_supervised(value, n_in, n_out)
-        out_file = './data_{0}-{1}/{2}.csv'.format(n_in, n_out, t)
+        out_file = './data/data_{0}-{1}/{2}.csv'.format(n_in, n_out, t)
         reframed.to_csv(out_file)
         print('done')
