@@ -3,10 +3,10 @@ import torch.nn as nn
 
 
 class LSTM(nn.Module):
-    def __init__(self, data_dim, hidden_size, num_layers, dropout=0., ) -> None:
+    def __init__(self, input_size, output_size, hidden_size, num_layers, dropout=0.,) -> None:
         super().__init__()
         self.lstm = nn.LSTM(
-            input_size=data_dim,
+            input_size=input_size,
             hidden_size=hidden_size,
             num_layers=num_layers,
             bias=True,
@@ -16,16 +16,16 @@ class LSTM(nn.Module):
         )
         self.classifier = nn.Linear(
             in_features=hidden_size,
-            out_features=data_dim,
+            out_features=output_size,
         )
     
     def forward(self, x, label=None):
         """
-        x: [batch size, seq length, data dim]
-        h: [batch size, seq length, data dim]
-        ht: [num layers, batch size, hidden dim]
-        ct: [num layers, batch size, hidden dim]
-        m: [batch size, data dim]
+        x: [batch size, seq length, input size]
+        h: [batch size, seq length, input size]
+        ht: [num layers, batch size, hidden size]
+        ct: [num layers, batch size, hidden size]
+        m: [batch size, hidden size]
         """
         h, (ht, ct) = self.lstm(x)
         m = h[:,-1,]
