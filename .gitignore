@@ -9,12 +9,11 @@ _*
 __pycache__
 logs
 .vscode
-.gitignore
 nohup.out
 
 # ==============================
 
-!.gitignore
 data/**/*.csv
+!data/raw_data/ETTh1.csv
 !data/data.zip
 !data/*.ipynb
