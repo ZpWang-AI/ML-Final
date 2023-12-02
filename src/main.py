@@ -72,7 +72,7 @@ class Trainer:
                 if not batch % args.log_steps:
                     cur_log = {
                         'loss': float((log_loss/args.log_steps).cpu()),
-                        'lr': lr_scheduler.get_lr(),
+                        'lr': lr_scheduler.get_last_lr()[0],
                         'epoch': batch/train_batch,
                     }
                     log_loss = 0
@@ -100,14 +100,15 @@ class Trainer:
         compute_metrics:ComputeMetrics,
     ):
         model.eval()
-        pred, gt = [], []
-        for inputs in dataloader:
-            inputs = inputs.to(self.device)
-            output = model.predict(inputs)
-            pred.append(output['pred'])
-            gt.append(output['gt'])
-        pred = torch.concat(pred).cpu().numpy()
-        gt = torch.concat(gt).cpu().numpy()
+        with torch.no_grad():
+            pred, gt = [], []
+            for inputs in dataloader:
+                inputs = inputs.to(self.device)
+                output = model.predict(inputs)
+                pred.append(output['pred'])
+                gt.append(output['gt'])
+            pred = torch.concat(pred).cpu().numpy()
+            gt = torch.concat(gt).cpu().numpy()
         return compute_metrics(pred, gt)
     
     def main_one_iteration(self, args:CustomArgs, data:CustomData, training_iter_id=0):
@@ -194,7 +195,7 @@ class Trainer:
 
 
 if __name__ == '__main__':
-    def local_test_args(data_name='pdtb2', label_level='level1'):
+    def local_test_args():
         args = CustomArgs(test_setting=True)
         
         args.version = 'test'
@@ -203,7 +204,7 @@ if __name__ == '__main__':
         args.data_path = r'D:\0--data\研究生学务\研一上\机器学习\Final\ML-Final\data\data_96-96'
         # args.data_path = r'D:\0--data\研究生学务\研一上\机器学习\Final\ML-Final\data\data_96-336'
         
-        args.model_name_or_path = './plm_cache/models--roberta-base/snapshots/bc2764f8af2e92b6eb5679868df33e224075ca68/'
+        args.model = 'lstm'
         args.ckpt_dir = './ckpt_space/'
         args.log_dir = './log_space/'
 

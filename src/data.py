@@ -27,7 +27,7 @@ class CustomDataCollator:
         """
         features: List[List[]]
         """
-        features = torch.tensor(np.array(features))
+        features = torch.tensor(np.array(features)).float()
         features = features.reshape(features.shape[0], -1, 8)
         return features
 
@@ -78,14 +78,14 @@ class CustomData:
             collate_fn=self.data_collator,
             drop_last=False,
         )
-        self.dev_dataset = DataLoader(
+        self.dev_dataloader = DataLoader(
             self.dev_dataset,
             batch_size=eval_batch_size,
             shuffle=False,
             collate_fn=self.data_collator,
             drop_last=False,
         )
-        self.dev_dataset = DataLoader(
+        self.test_dataloader = DataLoader(
             self.test_dataset,
             batch_size=eval_batch_size,
             shuffle=False,

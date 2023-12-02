@@ -21,7 +21,7 @@ class LSTM(nn.Module):
         )
         self.criterion = nn.MSELoss(reduction='sum')
     
-    def forward(self, inputs):
+    def forward(self, inputs:torch.Tensor):
         """
         inputs: [batch size, seq length, ...]
         x: [batch size, seq length, input size]

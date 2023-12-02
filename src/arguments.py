@@ -50,7 +50,7 @@ class CustomArgs:
         # ========== lr ============================
         self.part6 = 'lr'
         self.weight_decay = 0.01
-        self.learning_rate = 5e-6
+        self.learning_rate = 1e-3
         
         # ========== file path =====================
         self.part7 = 'file path'
@@ -85,8 +85,6 @@ class CustomArgs:
     def complete_path(self,
                       show_cur_time=True,
                       show_server_name = True,
-                      show_data_name=True,
-                      show_label_level=True,
                       ):
         if not self.cur_time:
             self.cur_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
@@ -96,10 +94,6 @@ class CustomArgs:
             if show_server_name:
                 specific_fold_name.append(self.server_name)
             specific_fold_name.append(self.version)
-            if show_data_name:
-                specific_fold_name.append(self.data_name)
-            if show_label_level:
-                specific_fold_name.append(self.label_level)
             specific_fold_name = '.'.join(map(str, specific_fold_name))
             self.ckpt_dir = os.path.join(self.ckpt_dir, specific_fold_name)
             self.log_dir = os.path.join(self.log_dir, specific_fold_name) 
