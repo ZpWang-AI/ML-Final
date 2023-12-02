@@ -15,8 +15,6 @@ class CustomArgs:
         
         # ========== base setting ==================
         self.part1 = 'base setting'
-        # self.do_train = True
-        # self.do_eval = True
         self.save_ckpt = False
         self.seed = 2023
         
@@ -26,54 +24,52 @@ class CustomArgs:
         # ========== data ==========================
         self.part2 = 'data'
         self.mini_dataset = False
-        self.data_name = 'pdtb2'
 
         self.trainset_size = -1
         self.devset_size = -1
         self.testset_size = -1
         
-        # ========== file path =====================
-        self.part3 = 'file path'
-        self.model_name_or_path = 'roberta-base'
-        self.data_path = ''
-        self.cache_dir = 'plm_cache'
-        self.output_dir = 'output_space'
-        self.log_dir = 'log_space'
+        # ========== model =========================
+        self.part3 = 'model'
+        self.model = 'lstm'
+        self.hidden_size = 128
+        self.num_layers = 2
         
         # ========== loss ==========================
         self.part4 = 'loss'
-        self.loss_type = 'CELoss'
+        self.loss_type = 'MSELoss'
         
         # ========== epoch, batch, step ============
         self.part5 = 'epoch, batch, step'
-        self.max_steps = -1
-        self.warmup_ratio = 0.05
         self.epochs = 5
         self.train_batch_size = 8
         self.eval_batch_size = 32
         self.eval_steps = 100
         self.log_steps = 10
-        self.gradient_accumulation_steps = 1
-        self.eval_per_epoch = -1
-
-        self.real_batch_size = -1
-        self.sample_per_eval = -1
         
         # ========== lr ============================
         self.part6 = 'lr'
         self.weight_decay = 0.01
         self.learning_rate = 5e-6
         
+        # ========== file path =====================
+        self.part7 = 'file path'
+        self.data_path = './data/data_96-96'
+        self.cache_dir = 'plm_cache'
+        self.ckpt_dir = 'ckpt_space'
+        self.log_dir = 'log_space'
+        
         # ========== additional details ============
-        self.part7 = 'additional details'
+        self.part8 = 'additional details'
         self.cuda_id = ''
         self.cur_time = ''
         self.server_name = ''
         
-        for p in range(1, 8):
+        for p in range(1, 100):
             attr_name = f'part{p}'
-            init_attr = self.__getattribute__(attr_name)
-            self.__setattr__(attr_name, fill_with_delimiter(init_attr))
+            if hasattr(self, attr_name):
+                init_attr = self.__getattribute__(attr_name)
+                self.__setattr__(attr_name, fill_with_delimiter(init_attr))
         
         if test_setting:
             self.version = 'test'
@@ -105,10 +101,11 @@ class CustomArgs:
             if show_label_level:
                 specific_fold_name.append(self.label_level)
             specific_fold_name = '.'.join(map(str, specific_fold_name))
-            self.output_dir = os.path.join(self.output_dir, specific_fold_name)
+            self.ckpt_dir = os.path.join(self.ckpt_dir, specific_fold_name)
             self.log_dir = os.path.join(self.log_dir, specific_fold_name) 
     
     def estimate_cuda_memory(self):
+        return 10500
         if self.train_batch_size > 16:
             return 10500
         elif self.train_batch_size > 8:
@@ -132,22 +129,11 @@ class CustomArgs:
             self.cuda_id = free_gpu_ids
             print(f'=== CUDA {free_gpu_ids} ===')
         return self.cuda_id
-    
-    def recalculate_eval_log_steps(self):
-        self.real_batch_size = self.train_batch_size*self.gradient_accumulation_steps*self.cuda_cnt
-        if self.eval_per_epoch > 0:
-            self.eval_steps = max(1, int(
-                self.trainset_size / self.eval_per_epoch / self.real_batch_size
-            ))
-            self.log_steps = max(1, int(
-                self.trainset_size / self.eval_per_epoch / self.real_batch_size / 10
-            ))
-        self.sample_per_eval = self.real_batch_size*self.eval_steps
             
     def check_path(self):
         # self.data_path
         # self.cache_dir
-        # self.output_dir
+        # self.ckpt_dir
         # self.log_dir
         # self.load_ckpt_dir
         
@@ -158,7 +144,7 @@ class CustomArgs:
         else:
             path(self.cache_dir).mkdir(parents=True, exist_ok=True)
             
-        path(self.output_dir).mkdir(parents=True, exist_ok=True)
+        path(self.ckpt_dir).mkdir(parents=True, exist_ok=True)
         path(self.log_dir).mkdir(parents=True, exist_ok=True)
         
         # if not self.do_train and self.do_eval and not path(self.load_ckpt_dir).exists():
