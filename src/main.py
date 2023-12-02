@@ -35,7 +35,7 @@ class Trainer:
         self.device = None
         pass
     
-    def train(
+    def fit(
         self,
         args:CustomArgs,
         model:nn.Module,
@@ -53,7 +53,7 @@ class Trainer:
         batch = 0
         model.train()
         total_loss, log_loss = 0, 0
-        best_metrics = {}
+        best_metrics = {m:-1 for m in compute_metrics.metric_names}
         
         for _ in range(args.epochs):
             for inputs in data.train_dataloader:
@@ -75,6 +75,7 @@ class Trainer:
                         'lr': lr_scheduler.get_lr(),
                         'epoch': batch/train_batch,
                     }
+                    log_loss = 0
                     logger.log_json(cur_log, LOG_FILENAME_DICT['loss'], log_info=True, mode='a')
                 if not batch % args.eval_steps:
                     metrics = self.evaluate(model, data.dev_dataloader, compute_metrics)
@@ -84,7 +85,7 @@ class Trainer:
                     for k,v in metrics.items():
                         best_metrics[k] = max(best_metrics[k], v)
                     logger.log_json(metrics, LOG_FILENAME_DICT['dev'], log_info=True, mode='a')
-                    logger.log_json(best_metrics, LOG_FILENAME_DICT['best'], log_info=False, mode='w')
+                    logger.log_json(best_metrics, LOG_FILENAME_DICT['best'], log_info=True, mode='w')
         
         # TODO: model load
         test_metric = self.evaluate(model, data.test_dataloader, compute_metrics)
@@ -117,7 +118,7 @@ class Trainer:
             set_seed(args.seed)
             # path
             train_fold_name = f'training_iteration_{training_iter_id}'
-            args.output_dir = os.path.join(args.output_dir, train_fold_name)
+            args.ckpt_dir = os.path.join(args.ckpt_dir, train_fold_name)
             args.log_dir = os.path.join(args.log_dir, train_fold_name)
             args.check_path()
             
@@ -142,7 +143,7 @@ class Trainer:
         
         start_time = time.time()
         
-        train_output = self.train(
+        train_output = self.fit(
             args=args,
             model=model,
             data=data,
@@ -154,7 +155,7 @@ class Trainer:
         logger.log_json(train_output, LOG_FILENAME_DICT['output'], log_info=True, mode='w')
         
         if not args.save_ckpt:
-            shutil.rmtree(args.output_dir)
+            shutil.rmtree(args.ckpt_dir)
 
     def main(self, args:CustomArgs):
         from copy import deepcopy
@@ -177,7 +178,7 @@ class Trainer:
             for training_iter_id in range(args.training_iteration):
                 self.main_one_iteration(deepcopy(args), data=data, training_iter_id=training_iter_id)
             if not args.save_ckpt:
-                shutil.rmtree(args.output_dir)
+                shutil.rmtree(args.ckpt_dir)
         except Exception as _:
             error_file = main_logger.log_dir/'error.out'
             catch_and_record_error(error_file)
@@ -199,17 +200,11 @@ if __name__ == '__main__':
         args.version = 'test'
         args.server_name = 'local'
         
-        args.data_name = data_name
-        if data_name == 'pdtb2':
-            args.data_path = './CorpusData/PDTB2/pdtb2.csv'
-        elif data_name == 'pdtb3':
-            args.data_path = './CorpusData/PDTB3/pdtb3_implicit.csv'
-        elif data_name == 'conll':
-            args.data_path = './CorpusData/CoNLL16/'  
+        args.data_path = r'D:\0--data\研究生学务\研一上\机器学习\Final\ML-Final\data\data_96-96'
+        # args.data_path = r'D:\0--data\研究生学务\研一上\机器学习\Final\ML-Final\data\data_96-336'
         
         args.model_name_or_path = './plm_cache/models--roberta-base/snapshots/bc2764f8af2e92b6eb5679868df33e224075ca68/'
-        args.cache_dir = './plm_cache/'
-        args.output_dir = './output_space/'
+        args.ckpt_dir = './ckpt_space/'
         args.log_dir = './log_space/'
 
         return args

@@ -38,7 +38,7 @@ class LSTM(nn.Module):
         h, (ht, ct) = self.lstm(x)
         m = h[:, 95:-1, ]
         pred = self.classifier(m)
-        loss = self.criterion(pred, y)/len(y)
+        loss = self.criterion(pred, y)/y.shape[0]
         return {
             'pred': pred,
             'loss': loss,

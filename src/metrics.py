@@ -16,9 +16,8 @@ class ComputeMetrics:
     def __call__(self, pred, gt):
         """
         n = data dimension
-        eval_pred: (predictions, labels)
-        predictions: np.array [datasize, n]
-        labels: np.array [datasize, n]
+        pred: np.array [datasize, n]
+        gt: np.array [datasize, n]
         """
         
         res = {

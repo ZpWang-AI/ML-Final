@@ -100,12 +100,15 @@ if __name__ == '__main__':
     start_time = time.time()
     
     sample_dataset = CustomData(
-        r'D:\0--data\研究生学务\研一上\机器学习\Final\tmp\data_96-96',
+        r'D:\0--data\研究生学务\研一上\机器学习\Final\ML-Final\data\data_96-336',
         mini_dataset=False,
     )
     sample_dataset.prepare_dataloader(train_batch_size=3, eval_batch_size=4)
     batch = iter(sample_dataset.train_dataloader).__next__()
-    print('batch shape', batch.shape, '\n')
+    print('batch shape:', batch.shape, '\n')
     print(f'time: {time.time()-start_time:.2f}s')
-    print('train size', len(sample_dataset.train_dataset))
+    print(f'train/dev/test size: '
+          f'{len(sample_dataset.train_dataset)}/'
+          f'{len(sample_dataset.dev_dataset)}/'
+          f'{len(sample_dataset.test_dataset)}')
     pass
