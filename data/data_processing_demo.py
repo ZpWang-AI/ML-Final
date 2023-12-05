@@ -6,7 +6,7 @@ import torch.nn as nn
 from torch.utils.data import TensorDataset
 
 # 特征数量
-num_features = 7
+num_features = 8
 
 n_out = 96
 n_in = 96

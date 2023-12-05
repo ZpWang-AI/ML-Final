@@ -13,19 +13,17 @@ class ComputeMetrics:
         self.feature_list = feature_list
         self.metric_names = ['MSE', 'MAE']  # +feature_list
         
-    def __call__(self, eval_pred):
+    def __call__(self, pred, gt):
         """
         n = data dimension
-        eval_pred: (predictions, labels)
-        predictions: np.array [datasize, n]
-        labels: np.array [datasize, n]
+        pred: np.array [datasize, n]
+        gt: np.array [datasize, n]
         """
-        predictions, labels = eval_pred
         
         res = {
             # 'Acc': accuracy_score(labels, predictions),
-            'MSE': cal_MSE(predictions, labels),
-            'MAE': cal_MAE(predictions, labels),
+            'MSE': cal_MSE(pred, gt),
+            'MAE': cal_MAE(pred, gt),
         }
         
         # for i, target_type in enumerate(self.feature_list):
