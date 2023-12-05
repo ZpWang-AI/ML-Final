@@ -6,6 +6,16 @@ from pathlib import Path as path
 from collections import defaultdict
 
 
+LOG_FILENAME_DICT = {
+    'hyperparams': 'hyperparams.json',
+    'best': 'best_metric_score.json',
+    'dev': 'dev_metric_score.jsonl',
+    'test': 'test_metric_score.json',
+    'loss': 'train_loss.jsonl',
+    'output': 'train_output.json',
+}
+
+
 class CustomLogger:
     def __init__(self, log_dir='./log_space', logger_name='custom_logger', print_output=False) -> None:
         self.log_dir = path(log_dir)
@@ -27,6 +37,9 @@ class CustomLogger:
     
     def info(self, *args):
         self.logger.info(' '.join(map(str, args)))
+        
+    def add_prefix_string(self, dic, prefix_string):
+        return {f'{prefix_string}{k}':v for k,v in dic.items()}
         
     def log_json(self, content, log_file_name, log_info=False, mode='w'):
         if log_info:

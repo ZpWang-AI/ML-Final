@@ -4,6 +4,11 @@ import json
 from pathlib import Path as path
 from datetime import datetime
 
+try:
+    from model.LSTM import LSTMConfig
+except:
+    pass
+
 
 def fill_with_delimiter(s):
     return f'{"="*10} {s} {"="*(30-len(s))}'
@@ -32,8 +37,12 @@ class CustomArgs:
         # ========== model =========================
         self.part3 = 'model'
         self.model = 'lstm'
-        self.hidden_size = 128
-        self.num_layers = 2
+        self.model_config:dict = LSTMConfig(
+            data_dim=7,
+            hidden_size=128,
+            num_layers=3,
+            dropout=0.,
+        )
         
         # ========== loss ==========================
         self.part4 = 'loss'

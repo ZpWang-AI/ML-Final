@@ -14,20 +14,11 @@ from transformers import set_seed
 
 from utils import catch_and_record_error
 from arguments import CustomArgs
-from logger import CustomLogger
+from logger import CustomLogger, LOG_FILENAME_DICT
 from data import CustomData, DataLoader
-from model.LSTM import LSTM
+from model.LSTM import LSTM, LSTMConfig
 from metrics import ComputeMetrics
 from analyze import analyze_metrics_json
-
-LOG_FILENAME_DICT = {
-    'hyperparams': 'hyperparams.json',
-    'best': 'best_metric_score.json',
-    'dev': 'dev_metric_score.jsonl',
-    'test': 'test_metric_score.json',
-    'loss': 'train_loss.jsonl',
-    'output': 'train_output.json',
-}
 
 
 class Trainer:
@@ -44,20 +35,31 @@ class Trainer:
         logger:CustomLogger,
     ):
         self.device = torch.device('cuda:0') if args.cuda_id else torch.device('cpu')
-        model.to(self.device)
-        data.prepare_dataloader(train_batch_size=args.train_batch_size, eval_batch_size=args.eval_batch_size)
-        train_batch = len(data.train_dataloader)
-        optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
-        lr_scheduler = torch.optim.lr_scheduler.LinearLR(optimizer, total_iters=train_batch*args.epochs)
         
-        batch = 0
+        data.prepare_dataloader(train_batch_size=args.train_batch_size, 
+                                eval_batch_size=args.eval_batch_size)
+        train_batch_num = len(data.train_dataloader)
+        
+        optimizer = torch.optim.Adam(
+            model.parameters(), 
+            lr=args.learning_rate, 
+            weight_decay=args.weight_decay
+        )
+        lr_scheduler = torch.optim.lr_scheduler.LinearLR(
+            optimizer, total_iters=train_batch_num*args.epochs
+        )
+        
+        model.to(self.device)
         model.train()
+        
+        cur_batch_num = 0
         total_loss, log_loss = 0, 0
         best_metrics = {m:-1 for m in compute_metrics.metric_names}
+        best_model_file = path(args.ckpt_dir, 'best.bin')
         
         for _ in range(args.epochs):
             for inputs in data.train_dataloader:
-                batch += 1
+                cur_batch_num += 1
                 
                 inputs = inputs.to(self.device)
                 output = model(inputs)
@@ -69,29 +71,35 @@ class Trainer:
                 
                 total_loss += loss
                 log_loss += loss
-                if not batch % args.log_steps:
+                if not cur_batch_num % args.log_steps:
                     cur_log = {
                         'loss': float((log_loss/args.log_steps).cpu()),
                         'lr': lr_scheduler.get_last_lr()[0],
-                        'epoch': batch/train_batch,
+                        'epoch': cur_batch_num/train_batch_num,
                     }
                     log_loss = 0
                     logger.log_json(cur_log, LOG_FILENAME_DICT['loss'], log_info=True, mode='a')
-                if not batch % args.eval_steps:
+                if not cur_batch_num % args.eval_steps:
                     metrics = self.evaluate(model, data.dev_dataloader, compute_metrics)
                     if metrics['MSE'] > best_metrics['MSE']:
-                        # TODO: save
-                        pass
+                        torch.save(model.state_dict(), best_model_file)
                     for k,v in metrics.items():
                         best_metrics[k] = max(best_metrics[k], v)
-                    logger.log_json(metrics, LOG_FILENAME_DICT['dev'], log_info=True, mode='a')
-                    logger.log_json(best_metrics, LOG_FILENAME_DICT['best'], log_info=True, mode='w')
+                    logger.log_json(
+                        logger.add_prefix_string(metrics, 'dev_'),
+                        LOG_FILENAME_DICT['dev'], log_info=True, mode='a')
+                    logger.log_json(
+                        logger.add_prefix_string(best_metrics, 'best_'),
+                        LOG_FILENAME_DICT['best'], log_info=True, mode='w')
         
-        # TODO: model load
+        model.load_state_dict(torch.load(best_model_file))
         test_metric = self.evaluate(model, data.test_dataloader, compute_metrics)
-        logger.log_json(test_metric, LOG_FILENAME_DICT['test'], log_info=True, mode='w')
+        logger.log_json(
+            logger.add_prefix_string(test_metric, 'test_'),
+            LOG_FILENAME_DICT['test'], log_info=True, mode='w')
         
-        return {'loss': float((total_loss/batch).cpu()), 'epoch':batch/train_batch}
+        return {'loss': float((total_loss/cur_batch_num).cpu()), 
+                'epoch':cur_batch_num/train_batch_num}
     
     def evaluate(
         self,
@@ -109,6 +117,7 @@ class Trainer:
                 gt.append(output['gt'])
             pred = torch.concat(pred).cpu().numpy()
             gt = torch.concat(gt).cpu().numpy()
+        model.train()
         return compute_metrics(pred, gt)
     
     def main_one_iteration(self, args:CustomArgs, data:CustomData, training_iter_id=0):
@@ -192,6 +201,7 @@ class Trainer:
             metric_analysis = analyze_metrics_json(args.log_dir, json_file_name, just_average=True)
             if metric_analysis:
                 main_logger.log_json(metric_analysis, json_file_name, log_info=True)
+        
 
 
 if __name__ == '__main__':
@@ -211,6 +221,8 @@ if __name__ == '__main__':
         return args
     
     args = local_test_args()
+    args.prepare_gpu(target_mem_mb=1, gpu_cnt=1)
+    # args.save_ckpt = True
     Trainer().main(args)
     
     # args = CustomArgs()
