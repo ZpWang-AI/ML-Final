@@ -10,7 +10,7 @@ This is the final project for the machine learning course.
 
 ## Contributions
 
-Refer to the Issue.
+Refer to the Issues.
 
 ## File Structure
 
