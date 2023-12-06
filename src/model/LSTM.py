@@ -2,18 +2,6 @@ import torch
 import torch.nn as nn
 
 
-class LSTMConfig(dict):
-    def __init__(self, data_dim=7, hidden_size=128, num_layers=3, dropout=0.) -> None:
-        self.data_dim = data_dim
-        self.hidden_size = hidden_size
-        self.num_layers = num_layers
-        self.dropout = dropout
-        
-    def __setattr__(self, __name: str, __value) -> None:
-        self.__dict__[__name] = __value
-        super().__init__(self.__dict__)
-
-
 class LSTM(nn.Module):
     def __init__(self, data_dim, hidden_size, num_layers, dropout=0.,) -> None:
         super().__init__()
@@ -72,6 +60,7 @@ class LSTM(nn.Module):
 
 
 if __name__ == '__main__':
+    from configs import LSTMConfig
     sample_inputs = torch.rand((5, 96+336, 8))
     sample_net = LSTM(**LSTMConfig())
     sample_train = sample_net(sample_inputs)

@@ -5,7 +5,7 @@ from pathlib import Path as path
 from datetime import datetime
 
 try:
-    from model.LSTM import LSTMConfig
+    from model.configs import LSTMConfig
 except:
     pass
 
@@ -29,6 +29,7 @@ class CustomArgs:
         # ========== data ==========================
         self.part2 = 'data'
         self.mini_dataset = False
+        self.data_type = '96-96'
 
         self.trainset_size = -1
         self.devset_size = -1
@@ -89,23 +90,25 @@ class CustomArgs:
             self.epochs = 2
             self.eval_steps = 4
             self.log_steps = 4
-            self.eval_per_epoch = -1
     
     def complete_path(self,
                       show_cur_time=True,
                       show_server_name = True,
                       ):
-        if not self.cur_time:
-            self.cur_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-            specific_fold_name = []
-            if show_cur_time:
-                specific_fold_name.append(self.cur_time)
-            if show_server_name:
-                specific_fold_name.append(self.server_name)
-            specific_fold_name.append(self.version)
-            specific_fold_name = '.'.join(map(str, specific_fold_name))
-            self.ckpt_dir = os.path.join(self.ckpt_dir, specific_fold_name)
-            self.log_dir = os.path.join(self.log_dir, specific_fold_name) 
+        if self.cur_time:
+            return
+        self.cur_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+        
+        specific_fold_name = []
+        if show_cur_time:
+            specific_fold_name.append(self.cur_time)
+        if show_server_name:
+            specific_fold_name.append(self.server_name)
+        specific_fold_name.append(self.version)
+        specific_fold_name = '.'.join(map(str, specific_fold_name))
+        
+        self.ckpt_dir = os.path.join(self.ckpt_dir, specific_fold_name)
+        self.log_dir = os.path.join(self.log_dir, specific_fold_name) 
     
     def estimate_cuda_memory(self):
         return 10500
@@ -138,9 +141,16 @@ class CustomArgs:
         # self.cache_dir
         # self.ckpt_dir
         # self.log_dir
-        # self.load_ckpt_dir
         
         assert path(self.data_path).exists(), 'wrong data path'
+        data_type = str(self.data_path).split('_')[-1]
+        if '96-96' in data_type:
+            self.data_type = '96-96'
+        elif '96-336' in data_type:
+            self.data_type = '96-336'
+        else:
+            raise Exception('strange data path, plz rename it to data_96-96/data_96-336')
+            
         
         if str(self.cache_dir) in ['None', '']:
             self.cache_dir = None
@@ -150,8 +160,6 @@ class CustomArgs:
         path(self.ckpt_dir).mkdir(parents=True, exist_ok=True)
         path(self.log_dir).mkdir(parents=True, exist_ok=True)
         
-        # if not self.do_train and self.do_eval and not path(self.load_ckpt_dir).exists():
-        #     raise Exception('no do_train and load_ckpt_dir does not exist')  
         
     def __iter__(self):
         return iter(self.__dict__.items())

@@ -16,7 +16,8 @@ from utils import catch_and_record_error
 from arguments import CustomArgs
 from logger import CustomLogger, LOG_FILENAME_DICT
 from data import CustomData, DataLoader
-from model.LSTM import LSTM, LSTMConfig
+from model.LSTM import LSTM
+from model.configs import LSTMConfig
 from metrics import ComputeMetrics
 from analyze import analyze_metrics_json
 
