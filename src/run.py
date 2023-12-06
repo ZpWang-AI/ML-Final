@@ -40,8 +40,8 @@ def server_experiment_args():
     args.epochs = 10
     args.train_batch_size = 32
     args.eval_batch_size = 32
-    args.eval_steps = 10
-    args.log_steps = 2
+    args.eval_steps = 100
+    args.log_steps = 5
     
     args.weight_decay = 0.01
     args.learning_rate = 1e-3
