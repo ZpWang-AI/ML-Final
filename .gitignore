@@ -17,3 +17,5 @@ data/**/*.csv
 !data/raw_data/ETTh1.csv
 !data/data.zip
 !data/*.ipynb
+
+!experiment_analysis/visualize.ipynb
