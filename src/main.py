@@ -85,9 +85,10 @@ class Trainer:
                     log_loss = 0
                     logger.log_json(cur_log, LOG_FILENAME_DICT['loss'], log_info=False, mode='a')
                 if not cur_batch_num % args.eval_steps:
+                    progress_bar.display()
                     metrics = self.evaluate(model, data.dev_dataloader, compute_metrics)
                     if metrics['MSE'] < best_metrics['MSE']:
-                        torch.save(model.state_dict(), best_model_file)
+                        torch.save(model, best_model_file)
                     for k,v in metrics.items():
                         best_metrics[k] = min(best_metrics[k], v)
                     logger.log_json(
@@ -98,7 +99,7 @@ class Trainer:
                         LOG_FILENAME_DICT['best'], log_info=False, mode='w')
         
         progress_bar.close()
-        model.load_state_dict(torch.load(best_model_file))
+        model = torch.load(best_model_file)
         test_metric = self.evaluate(model, data.test_dataloader, compute_metrics)
         logger.log_json(
             logger.add_prefix_string(test_metric, 'test_'),
@@ -106,7 +107,7 @@ class Trainer:
         
         return {'train_loss': float((total_loss/cur_batch_num).cpu()), 
                 'train_epoch':cur_batch_num/train_batch_num}
-    
+
     def evaluate(
         self,
         model:nn.Module,
@@ -118,7 +119,7 @@ class Trainer:
             pred, gt = [], []
             for inputs in tqdm.tqdm(dataloader, desc='evaluate'):
                 inputs = inputs.to(self.device)
-                output = model.predict(inputs)
+                output = model(inputs)
                 pred.append(output['pred'])
                 gt.append(output['gt'])
             pred = torch.concat(pred).cpu().numpy()
@@ -144,12 +145,7 @@ class Trainer:
                 print_output=True,
             )
             
-            model = LSTM(
-                data_dim=7,
-                hidden_size=128,
-                num_layers=3,
-                dropout=0.,
-            )
+            model = LSTM(**args.model_config)
             
             compute_metrics = ComputeMetrics(feature_list=data.feature_list)
         
@@ -209,7 +205,6 @@ class Trainer:
                 main_logger.log_json(metric_analysis, json_file_name, log_info=False)
         
 
-
 if __name__ == '__main__':
     def local_test_args():
         args = CustomArgs(test_setting=True)
@@ -228,7 +223,7 @@ if __name__ == '__main__':
     
     args = local_test_args()
     args.prepare_gpu(target_mem_mb=1, gpu_cnt=1)
-    # args.save_ckpt = True
+    args.save_ckpt = True
     Trainer().main(args)
     
     # args = CustomArgs()

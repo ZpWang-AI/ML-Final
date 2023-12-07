@@ -20,7 +20,7 @@ class CustomArgs:
         
         # ========== base setting ==================
         self.part1 = 'base setting'
-        self.save_ckpt = False
+        self.save_ckpt = True
         self.seed = 2023
         
         self.training_iteration = 5
