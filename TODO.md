@@ -6,7 +6,7 @@
     * [X] base
     * [ ] residual network
     * [ ] replace linear with lstm
-    * [ ] use h0(time)
+    * [ ] use h7(time)
     * [ ] batch normalize
   * [ ] Transformer
     * [X] base

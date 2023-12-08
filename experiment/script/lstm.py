@@ -52,9 +52,9 @@ def server_experiment_args():
     
     args.version = 'base'
     # ============================================
-    args.model = 'transformer'
-    args.model_config = TransformerConfig(
-        channels=128, num_layers=3, nhead=8, dropout=0.,
+    args.model = 'lstm'
+    args.model_config = LSTMConfig(
+        hidden_size=128, num_layers=3, dropout=0.,
     )
     return args
     
