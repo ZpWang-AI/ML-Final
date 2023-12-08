@@ -7,10 +7,11 @@ if SERVER_NAME in ['cu12_', 'cu13_', 'northern_']:
 else:
     raise Exception('wrong ROOT_FOLD_IDRR')
 
-import os
+import os, sys
 CODE_SPACE = ROOT_FOLD_IDRR+'src/'
 if __name__ == '__main__':
     os.chdir(CODE_SPACE)
+    sys.path.insert(0, CODE_SPACE)
 
 # ===== import ===== !!! Don't import torch !!!
 from arguments import CustomArgs

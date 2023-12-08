@@ -7,16 +7,15 @@ if SERVER_NAME in ['cu12_', 'cu13_', 'northern_']:
 else:
     raise Exception('wrong ROOT_FOLD_IDRR')
 
-import os
+import os, sys
 CODE_SPACE = ROOT_FOLD_IDRR+'src/'
 if __name__ == '__main__':
     os.chdir(CODE_SPACE)
+    sys.path.insert(0, CODE_SPACE)
 
 # ===== import ===== !!! Don't import torch !!!
 from arguments import CustomArgs
-from model.configs import (
-    LSTMConfig, TransformerConfig
-)
+from model.configs import *
 
 
 def server_base_args(test_setting=False) -> CustomArgs:
@@ -52,9 +51,9 @@ def server_experiment_args():
     
     args.version = 'base'
     # ============================================
-    args.model = 'lstm'
-    args.model_config = LSTMConfig(
-        hidden_size=128, num_layers=3, dropout=0.,
+    args.model = 'transformer'
+    args.model_config = TransformerConfig(
+        channels=128, num_layers=3, nhead=8, dropout=0.,
     )
     return args
     
