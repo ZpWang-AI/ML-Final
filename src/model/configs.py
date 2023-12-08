@@ -39,9 +39,23 @@ class TransformerConfig(ModelConfig):
         self.dropout = dropout
 
 
+class GRUConfig(ModelConfig):
+    def __init__(
+        self,
+        data_dim=7,
+        hidden_size=128,
+        num_layers=3,
+        dropout=0.,
+    ) -> None:
+        self.data_dim = data_dim
+        self.hidden_size = hidden_size
+        self.num_layers = num_layers
+        self.dropout = dropout
+
+
 if __name__ == '__main__':
     def generate_config(s):
-        items = [i.strip()for i in s.split() if i.strip()]
+        items = [i.strip().strip(',')for i in s.split() if i.strip()]
         for i in items:
             print(f'{i}=,')
         print()
@@ -49,9 +63,9 @@ if __name__ == '__main__':
             print(f'self.{i} = {i}')
     
     s = '''
-        data_dim
-        hidden_size
-        num_layers
-        dropout
+        data_dim,
+        hidden_size,
+        num_layers,
+        dropout,
     '''
     generate_config(s)

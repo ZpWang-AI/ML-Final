@@ -3,7 +3,13 @@ import torch.nn as nn
 
 
 class LSTM(nn.Module):
-    def __init__(self, data_dim, hidden_size, num_layers, dropout,) -> None:
+    def __init__(
+        self,
+        data_dim,
+        hidden_size,
+        num_layers,
+        dropout,
+    ) -> None:
         super().__init__()
         self.data_dim = data_dim
         self.lstm = nn.LSTM(

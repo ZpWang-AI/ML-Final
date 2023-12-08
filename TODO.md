@@ -10,11 +10,12 @@
     * [ ] batch normalize
   * [ ] Transformer
     * [X] base
-  * [ ] 123
+  * [ ] GRU
+    * [X] base
+  * [ ] CNN
 * [ ] Metric of features
 * [ ] Experiment
 * [ ] Result analyse
-
 
 ## mtl
 
@@ -26,7 +27,6 @@
     * [ ] prediciton
     * [ ] train loss
     * [ ] dev metric
-
 
 ## zhch
 
