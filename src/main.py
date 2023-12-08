@@ -17,10 +17,13 @@ from utils import catch_and_record_error
 from arguments import CustomArgs
 from logger import CustomLogger, LOG_FILENAME_DICT
 from data import CustomData, DataLoader
-from model.LSTM import LSTM
-from model.configs import LSTMConfig
 from metrics import ComputeMetrics
 from analyze import analyze_metrics_json
+from model.LSTM import LSTM
+from model.Transformer import Transformer
+from model.configs import (
+    LSTMConfig, TransformerConfig,
+)
 
 
 class Trainer:
@@ -145,7 +148,13 @@ class Trainer:
                 print_output=True,
             )
             
-            model = LSTM(**args.model_config)
+            if args.model == 'lstm':
+                model = LSTM
+            elif args.model == 'transformer':
+                model = Transformer
+            else:
+                raise Exception('wrong args.model')
+            model = model(**args.model_config)
             
             compute_metrics = ComputeMetrics(feature_list=data.feature_list)
         
@@ -219,6 +228,8 @@ if __name__ == '__main__':
         args.ckpt_dir = './ckpt_space/'
         args.log_dir = './log_space/'
 
+        args.model = 'transformer'
+        args.model_config = TransformerConfig()
         return args
     
     args = local_test_args()

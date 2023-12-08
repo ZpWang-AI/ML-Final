@@ -12,7 +12,9 @@ CODE_SPACE = ROOT_FOLD_IDRR+'src/'
 
 # ===== import ===== !!! Don't import torch !!!
 from arguments import CustomArgs
-from model.configs import LSTMConfig
+from model.configs import (
+    LSTMConfig, TransformerConfig
+)
 
 
 def server_base_args(test_setting=False) -> CustomArgs:

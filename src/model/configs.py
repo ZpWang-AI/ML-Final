@@ -8,7 +8,13 @@ class ModelConfig(dict):
         
         
 class LSTMConfig(ModelConfig):
-    def __init__(self, data_dim=7, hidden_size=128, num_layers=3, dropout=0.) -> None:
+    def __init__(
+        self,
+        data_dim=7,
+        hidden_size=128,
+        num_layers=3,
+        dropout=0.,
+    ) -> None:
         self.data_dim = data_dim
         self.hidden_size = hidden_size
         self.num_layers = num_layers
@@ -16,9 +22,36 @@ class LSTMConfig(ModelConfig):
         
         
 class TransformerConfig(ModelConfig):
-    def __init__(self, data_dim=8, hidden_size=2048, num_layers=3, nhead=8, dropout=0.1,):
-        self.data_dim = data_dim
-        self.hidden_size = hidden_size
+    def __init__(
+        self, 
+        encoder_dim=8,
+        decoder_dim=1,
+        channels=128,
+        num_layers=3,
+        nhead=8,
+        dropout=0.1,
+    ) -> None:
+        self.encoder_dim = encoder_dim
+        self.decoder_dim = decoder_dim
+        self.channels = channels
         self.num_layers = num_layers
         self.nhead = nhead
         self.dropout = dropout
+
+
+if __name__ == '__main__':
+    def generate_config(s):
+        items = [i.strip()for i in s.split() if i.strip()]
+        for i in items:
+            print(f'{i}=,')
+        print()
+        for i in items:
+            print(f'self.{i} = {i}')
+    
+    s = '''
+        data_dim
+        hidden_size
+        num_layers
+        dropout
+    '''
+    generate_config(s)

@@ -2,27 +2,70 @@ import torch
 import torch.nn as nn
 
 
-class Transformer(nn.Module):
-    def __init__(self, data_dim, hidden_size, num_layers, nhead, dropout,) -> None:
+class SMAPELoss(nn.Module):
+    def __init__(self,) -> None:
         super().__init__()
-        self.data_dim = data_dim
-        encoder_layer = nn.TransformerEncoderLayer(
-            d_model=data_dim,
-            dim_feedforward=hidden_size,
+    
+    def forward(self, pred:torch.Tensor, gt:torch.Tensor):
+        loss = (pred-gt).abs() / (pred.abs()+gt.abs()+1e-8)
+        loss /= pred.shape[0]
+        return loss.sum()
+
+
+class Transformer(nn.Module):
+    def __init__(
+        self, 
+        encoder_dim,
+        decoder_dim,
+        channels,
+        num_layers,
+        nhead,
+        dropout,
+    ) -> None:
+        super().__init__()
+        self.encoder_dim = encoder_dim
+        self.decoder_dim = decoder_dim
+        
+        self.encoder_projection = nn.Linear(encoder_dim, channels)
+        self.decoder_projection = nn.Linear(decoder_dim, channels)
+        
+        self.encoder_pos_embedding = nn.Embedding(512, embedding_dim=channels)        
+        self.decoder_pos_embedding = nn.Embedding(512, embedding_dim=channels)
+        
+        self.transformer = nn.Transformer(
+            d_model=channels,
             nhead=nhead,
+            num_encoder_layers=num_layers,
+            num_decoder_layers=num_layers,
+            dim_feedforward=channels*4,
             dropout=dropout,
             batch_first=True,
         )
-        decoder_layer = nn.TransformerDecoderLayer(
-            d_model=data_dim,
-            dim_feedforward=hidden_size,
-            nhead=nhead,
-            dropout=dropout,
-            batch_first=True,
+        
+        self.linear = nn.Linear(channels, encoder_dim-decoder_dim)
+        self.criterion = SMAPELoss()
+    
+    def get_pos_emb(self, emb, embed_layer):
+        batch_size, sequence_len, channels = emb.shape
+        pos_emb = torch.arange(0, sequence_len, device=emb.device)
+        pos_emb = embed_layer(pos_emb)
+        pos_emb = pos_emb.unsqueeze(0).repeat(batch_size, 1, 1)
+        return pos_emb
+    
+    def model_forward(self, src, tgt):
+        src_emb = self.encoder_projection(src)
+        tgt_emb = self.decoder_projection(tgt)
+        final_src_emb = src_emb + self.get_pos_emb(src_emb, self.encoder_pos_embedding)
+        final_tgt_emb = tgt_emb + self.get_pos_emb(tgt_emb, self.decoder_pos_embedding)
+        tgt_mask = self.transformer.generate_square_subsequent_mask(tgt.shape[1], tgt.device)
+
+        output = self.transformer(
+            src=final_src_emb, 
+            tgt=final_tgt_emb,
+            tgt_mask=tgt_mask,
         )
-        self.encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
-        self.decoder = nn.TransformerDecoder(decoder_layer, num_layers=num_layers)
-        self.criterion = nn.MSELoss(reduction='sum')
+        output = self.linear(output)
+        return output
     
     def forward(self, inputs):
         """
@@ -35,7 +78,12 @@ class Transformer(nn.Module):
         m: [batch size, 96/336, hidden size]
         pred: [batch size, 96/336, output size]
         """
-        inputs = inputs[..., :self.data_dim]
+        src = inputs[:, :96, :self.encoder_dim]
+        tgt = inputs[:, 96:, -self.decoder_dim:]
+        y = inputs[:, 96:, :-self.decoder_dim]
+        output = self.model_forward(src, tgt)
+        loss = self.criterion(output, y)
+        return {'pred':output, 'gt':y, 'loss':loss}
         if self.training:
             x = inputs
             y = inputs[:, 96:, ]
@@ -44,7 +92,6 @@ class Transformer(nn.Module):
             pred = self.classifier(m)
             loss = self.criterion(pred, y)/y.shape[0]
         else:
-            x, y = inputs[:, :96, ], inputs[:, 96:, ]
             h, (ht, ct) = self.lstm(x)
             m = h[:, -1:, ]
             pred = self.classifier(m)
@@ -59,10 +106,7 @@ if __name__ == '__main__':
     from configs import TransformerConfig
     sample_inputs = torch.rand((5, 96+336, 8))
     sample_net = Transformer(**TransformerConfig())
-    out = sample_net.encoder(sample_inputs)
     print(sample_net)
-    print(out, out.shape)
-    exit()
     sample_output = sample_net(sample_inputs)
     print(sample_output['pred'].shape, sample_output['gt'].shape, sample_output['loss'])
     sample_net.eval()
