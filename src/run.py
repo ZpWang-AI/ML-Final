@@ -14,9 +14,7 @@ if __name__ == '__main__':
 
 # ===== import ===== !!! Don't import torch !!!
 from arguments import CustomArgs
-from model.configs import (
-    LSTMConfig, TransformerConfig
-)
+from model.configs import *
 
 
 def server_base_args(test_setting=False) -> CustomArgs:
