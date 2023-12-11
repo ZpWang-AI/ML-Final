@@ -1,7 +1,7 @@
 # ===== prepare server_name, root_fold =====
-SERVER_NAME = 'cu12_'
-if SERVER_NAME in ['cu12_', 'cu13_', 'northern_']:
-    ROOT_FOLD_IDRR = '/data/zpwang/ML-Final/'
+SERVER_NAME = 'cu1_'
+if SERVER_NAME in ['cu1_', 'cu13_',]:
+    ROOT_FOLD_IDRR = '/home/chongz/programFile/ML-Final-Test/ML-Final/'
 # elif SERVER_NAME == :
 #     ROOT_FOLD_IDRR = ''
 else:
@@ -27,7 +27,7 @@ def server_base_args(test_setting=False) -> CustomArgs:
     # file path
     args.data_path = ROOT_FOLD_IDRR+f'data/data_96-96/'
     args.cache_dir = ''
-    args.ckpt_dir = '/home/zpwang/ML-Final/ckpt_space/'  # TODO: consume lots of memory
+    args.ckpt_dir = '/home/chongz/programFile/ML-Final-Test/ML-Final/ckpt_space/'  # TODO: consume lots of memory
     if test_setting:
         args.log_dir = ROOT_FOLD_IDRR+'log_space_test/'
     else:
@@ -55,6 +55,7 @@ def server_experiment_args():
     args.model_config = TransformerConfig(
         channels=128, num_layers=3, nhead=8, dropout=0.,
     )
+    args.epochs = 12
     return args
     
     
