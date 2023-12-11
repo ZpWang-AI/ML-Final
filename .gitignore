@@ -10,6 +10,7 @@ __pycache__
 logs
 .vscode
 nohup.out
+!__init__.py
 
 # ==============================
 
@@ -17,3 +18,8 @@ data/**/*.csv
 !data/raw_data/ETTh1.csv
 !data/data.zip
 !data/*.ipynb
+
+!experiment/**/visualize.ipynb
+
+experiment/log_space/**
+!experiment/log_space/*.zip

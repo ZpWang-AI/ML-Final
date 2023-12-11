@@ -6,6 +6,7 @@ import torch.nn as nn
 import pandas as pd 
 import numpy as np
 import time
+import tqdm
 
 from typing import Any
 from typing import *
@@ -16,7 +17,8 @@ from utils import catch_and_record_error
 from arguments import CustomArgs
 from logger import CustomLogger, LOG_FILENAME_DICT
 from data import CustomData, DataLoader
-from model.LSTM import LSTM, LSTMConfig
+from model import get_model
+from model.configs import *
 from metrics import ComputeMetrics
 from analyze import analyze_metrics_json
 
@@ -39,6 +41,7 @@ class Trainer:
         data.prepare_dataloader(train_batch_size=args.train_batch_size, 
                                 eval_batch_size=args.eval_batch_size)
         train_batch_num = len(data.train_dataloader)
+        total_batch_num = train_batch_num*args.epochs
         
         optimizer = torch.optim.Adam(
             model.parameters(), 
@@ -46,7 +49,7 @@ class Trainer:
             weight_decay=args.weight_decay
         )
         lr_scheduler = torch.optim.lr_scheduler.LinearLR(
-            optimizer, total_iters=train_batch_num*args.epochs
+            optimizer, total_iters=total_batch_num
         )
         
         model.to(self.device)
@@ -54,8 +57,9 @@ class Trainer:
         
         cur_batch_num = 0
         total_loss, log_loss = 0, 0
-        best_metrics = {m:-1 for m in compute_metrics.metric_names}
+        best_metrics = {m:float('inf') for m in compute_metrics.metric_names}
         best_model_file = path(args.ckpt_dir, 'best.bin')
+        progress_bar = tqdm.tqdm(desc=f'train', total=total_batch_num)
         
         for _ in range(args.epochs):
             for inputs in data.train_dataloader:
@@ -68,6 +72,7 @@ class Trainer:
                 optimizer.step()
                 lr_scheduler.step()
                 optimizer.zero_grad()
+                progress_bar.update()
                 
                 total_loss += loss
                 log_loss += loss
@@ -78,29 +83,31 @@ class Trainer:
                         'epoch': cur_batch_num/train_batch_num,
                     }
                     log_loss = 0
-                    logger.log_json(cur_log, LOG_FILENAME_DICT['loss'], log_info=True, mode='a')
+                    logger.log_json(cur_log, LOG_FILENAME_DICT['loss'], log_info=False, mode='a')
                 if not cur_batch_num % args.eval_steps:
+                    progress_bar.display()
                     metrics = self.evaluate(model, data.dev_dataloader, compute_metrics)
-                    if metrics['MSE'] > best_metrics['MSE']:
-                        torch.save(model.state_dict(), best_model_file)
+                    if metrics['MSE'] < best_metrics['MSE']:
+                        torch.save(model, best_model_file)
                     for k,v in metrics.items():
-                        best_metrics[k] = max(best_metrics[k], v)
+                        best_metrics[k] = min(best_metrics[k], v)
                     logger.log_json(
                         logger.add_prefix_string(metrics, 'dev_'),
-                        LOG_FILENAME_DICT['dev'], log_info=True, mode='a')
+                        LOG_FILENAME_DICT['dev'], log_info=False, mode='a')
                     logger.log_json(
                         logger.add_prefix_string(best_metrics, 'best_'),
-                        LOG_FILENAME_DICT['best'], log_info=True, mode='w')
+                        LOG_FILENAME_DICT['best'], log_info=False, mode='w')
         
-        model.load_state_dict(torch.load(best_model_file))
+        progress_bar.close()
+        model = torch.load(best_model_file)
         test_metric = self.evaluate(model, data.test_dataloader, compute_metrics)
         logger.log_json(
             logger.add_prefix_string(test_metric, 'test_'),
             LOG_FILENAME_DICT['test'], log_info=True, mode='w')
         
-        return {'loss': float((total_loss/cur_batch_num).cpu()), 
-                'epoch':cur_batch_num/train_batch_num}
-    
+        return {'train_loss': float((total_loss/cur_batch_num).cpu()), 
+                'train_epoch':cur_batch_num/train_batch_num}
+
     def evaluate(
         self,
         model:nn.Module,
@@ -110,9 +117,9 @@ class Trainer:
         model.eval()
         with torch.no_grad():
             pred, gt = [], []
-            for inputs in dataloader:
+            for inputs in tqdm.tqdm(dataloader, desc='evaluate'):
                 inputs = inputs.to(self.device)
-                output = model.predict(inputs)
+                output = model(inputs)
                 pred.append(output['pred'])
                 gt.append(output['gt'])
             pred = torch.concat(pred).cpu().numpy()
@@ -138,12 +145,7 @@ class Trainer:
                 print_output=True,
             )
             
-            model = LSTM(
-                data_dim=7,
-                hidden_size=128,
-                num_layers=3,
-                dropout=0.,
-            )
+            model = get_model(args.model, args.model_config)
             
             compute_metrics = ComputeMetrics(feature_list=data.feature_list)
         
@@ -200,9 +202,8 @@ class Trainer:
                 continue
             metric_analysis = analyze_metrics_json(args.log_dir, json_file_name, just_average=True)
             if metric_analysis:
-                main_logger.log_json(metric_analysis, json_file_name, log_info=True)
+                main_logger.log_json(metric_analysis, json_file_name, log_info=False)
         
-
 
 if __name__ == '__main__':
     def local_test_args():
@@ -218,11 +219,13 @@ if __name__ == '__main__':
         args.ckpt_dir = './ckpt_space/'
         args.log_dir = './log_space/'
 
+        args.model = 'transformer'
+        args.model_config = TransformerConfig()
         return args
     
     args = local_test_args()
     args.prepare_gpu(target_mem_mb=1, gpu_cnt=1)
-    # args.save_ckpt = True
+    args.save_ckpt = True
     Trainer().main(args)
     
     # args = CustomArgs()

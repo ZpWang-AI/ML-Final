@@ -6,7 +6,11 @@ This is the final project for the machine learning course.
 
 1. unzip data/data.zip
 2. set args
-3. train
+3. run the program
+
+```
+python run.py
+```
 
 ## Contributions
 
