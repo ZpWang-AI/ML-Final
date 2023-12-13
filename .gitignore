@@ -26,3 +26,5 @@ experiment/log_space/**
 log_space
 ckpt_space
 src/script/**
+
+!src/model/_test_model.py

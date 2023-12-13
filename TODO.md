@@ -19,6 +19,7 @@
   * [ ] CNN
 * [ ] Experiment
 * [ ] Result analyse
+* [X] Readme
 
 ## mtl
 

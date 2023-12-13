@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from model.criterion import MSELoss
 
 
 class GRU(nn.Module):
@@ -23,11 +24,11 @@ class GRU(nn.Module):
             in_features=hidden_size,
             out_features=data_dim,
         )
-        self.criterion = nn.MSELoss(reduction='sum')
+        self.criterion = MSELoss(mean_dim=(0,1))
     
     def forward(self, inputs:torch.Tensor):
         """
-        inputs: [batch size, seq length, ...]
+        inputs: [batch size, seq length, 8]
         x: [batch size, seq length, input size]
         y: [batch size, 96/336, output size]
         h: [batch size, seq length, input size]
@@ -55,13 +56,3 @@ class GRU(nn.Module):
             loss = self.criterion(pred, y)/y.shape[0]
         return {'pred': pred, 'gt': y, 'loss': loss}
 
-
-if __name__ == '__main__':
-    from configs import GRUConfig
-    sample_inputs = torch.rand((5, 96+336, 8))
-    sample_net = GRU(**GRUConfig())
-    sample_output = sample_net(sample_inputs)
-    print(sample_output['pred'].shape, sample_output['gt'].shape, sample_output['loss'])
-    sample_net.eval()
-    sample_output = sample_net(sample_inputs)
-    print(sample_output['pred'].shape, sample_output['gt'].shape, sample_output['loss'])
