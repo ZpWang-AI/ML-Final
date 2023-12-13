@@ -1,7 +1,7 @@
 # ===== TODO: prepare server_name, root_fold, ckpt_space =====
-SERVER_NAME = 'cu12_'
-ROOT_FOLD = '/data/zpwang/ML-Final/'
-CKPT_SPACE = '/home/zpwang/ML-Final/ckpt_space/'  # where save checkpoints. consume lots of memory
+SERVER_NAME = 'cu12_'  # doesn't matter, just for record. end with "_"
+ROOT_FOLD = '/data/zpwang/ML-Final/'  # where this repository is located
+CKPT_SPACE = '/home/zpwang/ML-Final/ckpt_space/'  # where checkpoints are saved. consume lots of memory
 # ============================================================
 
 import os, sys
@@ -45,12 +45,12 @@ def server_experiment_args():
     args.weight_decay = 0.01
     args.learning_rate = 1e-3
     
-    # ===== TODO: modify args below =====
+    # ===== TODO: modify args below, don't modify args above =====
     args.model = 'transformer'
     args.model_config = TransformerConfig(
         channels=128, num_layers=3, nhead=8, dropout=0.,
     )
-    # ===================================
+    # ============================================================
     return args
     
     
