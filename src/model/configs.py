@@ -24,15 +24,13 @@ class LSTMConfig(ModelConfig):
 class TransformerConfig(ModelConfig):
     def __init__(
         self, 
-        encoder_dim=8,
-        decoder_dim=1,
+        data_dim=7,
         channels=128,
         num_layers=3,
         nhead=8,
         dropout=0.1,
     ) -> None:
-        self.encoder_dim = encoder_dim
-        self.decoder_dim = decoder_dim
+        self.data_dim = 7
         self.channels = channels
         self.num_layers = num_layers
         self.nhead = nhead

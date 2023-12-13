@@ -14,6 +14,7 @@
     * [ ] batch normalize
   * [ ] Transformer
     * [X] base
+    * [ ] Decoder only
   * [ ] GRU
     * [X] base
   * [ ] CNN
