@@ -23,3 +23,6 @@ data/**/*.csv
 
 experiment/log_space/**
 !experiment/log_space/*.zip
+
+log_space
+ckpt_space
