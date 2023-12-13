@@ -14,7 +14,9 @@ This is the final project for the machine learning course.
    Make sure that data path is `ML-Final/data/data_96-xx`
 2. Configure Settings
 
-   In `ML-Final/src/run.py`. Marked with **TODO**.
+   Copy `ML-Final/src/run.py` to do experiments. ** **Avoid modifying the original file!** **
+
+   Open `run.py`. Locate **TODO** marks. Modify as needed.
 3. Run Code
 
    ```shell
