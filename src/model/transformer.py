@@ -1,15 +1,6 @@
 import torch
 import torch.nn as nn
-
-
-class SMAPELoss(nn.Module):
-    def __init__(self,) -> None:
-        super().__init__()
-    
-    def forward(self, pred:torch.Tensor, gt:torch.Tensor):
-        loss = (pred-gt).abs() / (pred.abs()+gt.abs()+1e-8)
-        loss /= pred.shape[0]
-        return loss.sum()
+from model.criterion import SMAPELoss
 
 
 class Transformer(nn.Module):
@@ -43,7 +34,7 @@ class Transformer(nn.Module):
         )
         
         self.linear = nn.Linear(channels, encoder_dim-decoder_dim)
-        self.criterion = SMAPELoss()
+        self.criterion = SMAPELoss(mean_dim=(0,1))
     
     def get_pos_emb(self, emb, embed_layer):
         batch_size, sequence_len, channels = emb.shape

@@ -2,10 +2,12 @@ import numpy as np
 
 
 def cal_MSE(mat1, mat2):
-    return ((mat1-mat2)**2).sum() / len(mat1)
+    mse = ((mat1-mat2)**2).mean(axis=(0,1)).sum()
+    return float(mse)
 
 def cal_MAE(mat1, mat2):
-    return (np.abs(mat1-mat2)).sum() / len(mat1)
+    mae = (np.abs(mat1-mat2)).mean(axis=(0,1)).sum()
+    return float(mae)
 
 
 class ComputeMetrics:
@@ -15,9 +17,10 @@ class ComputeMetrics:
         
     def __call__(self, pred, gt):
         """
-        n = data dimension
-        pred: np.array [datasize, n]
-        gt: np.array [datasize, n]
+        s = sequence length
+        n = data dimension (7 or 8)
+        pred: np.array [datasize, s, n]
+        gt: np.array [datasize, s, n]
         """
         
         res = {

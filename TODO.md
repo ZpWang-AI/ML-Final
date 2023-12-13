@@ -1,6 +1,10 @@
 ## wzp
 
-* [X] Main loop
+* [ ] Main loop
+  * [X] base
+  * [ ] Normalize dataset
+  * [ ] Fix bug of metric
+  * [ ] Add metrics of features
 * [ ] Model
   * [ ] LSTM
     * [X] base
@@ -13,7 +17,6 @@
   * [ ] GRU
     * [X] base
   * [ ] CNN
-* [ ] Metric of features
 * [ ] Experiment
 * [ ] Result analyse
 
