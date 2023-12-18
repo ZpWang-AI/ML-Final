@@ -212,8 +212,8 @@ if __name__ == '__main__':
         args.version = 'test'
         args.server_name = 'local'
         
-        args.data_path = r'D:\0--data\研究生学务\研一上\机器学习\Final\ML-Final\data\data_96-96'
-        # args.data_path = r'D:\0--data\研究生学务\研一上\机器学习\Final\ML-Final\data\data_96-336'
+        args.data_path = path(__file__).parent.parent / r'data\data_96-96'
+        args.data_path = str(args.data_path)
         
         args.model = 'lstm'
         args.ckpt_dir = './ckpt_space/'
