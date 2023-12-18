@@ -44,6 +44,7 @@ def server_experiment_args():
     args.log_steps = 5
     args.weight_decay = 0.01
     args.learning_rate = 1e-3
+    args.save_ckpt = False
     
     # ===== TODO: modify args below, don't modify args above =====
     args.model = 'transformer'
