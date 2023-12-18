@@ -3,7 +3,7 @@
 * [ ] Main loop
   * [X] base
   * [ ] Normalize dataset
-  * [ ] Fix bug of metric
+  * [X] Fix bug of metric
   * [ ] Add metrics of features
 * [ ] Model
   * [ ] LSTM
