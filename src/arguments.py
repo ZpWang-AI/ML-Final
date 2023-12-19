@@ -93,7 +93,8 @@ class CustomArgs:
     
     def complete_path(self,
                       show_cur_time=True,
-                      show_server_name = True,
+                      show_model=True,
+                      show_server_name=True,
                       ):
         if self.cur_time:
             return
@@ -102,6 +103,8 @@ class CustomArgs:
         specific_fold_name = []
         if show_cur_time:
             specific_fold_name.append(self.cur_time)
+        if show_model:
+            specific_fold_name.append(self.model)
         if show_server_name:
             specific_fold_name.append(self.server_name)
         specific_fold_name.append(self.version)
