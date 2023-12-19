@@ -8,7 +8,7 @@ from collections import defaultdict
 from pathlib import Path as path
 
 
-def analyze_metrics_json(log_dir, file_name, just_average=False):
+def analyze_metrics_json(log_dir, file_name):
     if path(file_name).suffix != '.json':
         return {}
     total_metrics = defaultdict(list)  # {metric_name: [values]}
@@ -23,22 +23,10 @@ def analyze_metrics_json(log_dir, file_name, just_average=False):
                     total_metrics[k].append(v)
     if not total_metrics:
         return {}
-    metric_analysis = {}
-    for k, v in total_metrics.items():
-        if just_average:
-            metric_analysis[k] = np.mean(v)
-        else:
-            metric_analysis[k] = {
-                'tot': v,
-                'cnt': len(v),
-                'mean': np.mean(v),
-                'variance': np.var(v),
-                'std': np.std(v),
-                'error': np.std(v)/np.sqrt(len(v)),
-                'min': np.min(v),
-                'max': np.max(v),
-                'range': np.max(v)-np.min(v),
-            }
+    metric_analysis = (
+        {k:np.mean(v) for k,v in total_metrics.items()} |
+        {k+'_std':np.std(v) for k,v in total_metrics.items()}
+    )
     return metric_analysis
 
 
