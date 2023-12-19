@@ -42,3 +42,4 @@
 
   * [ ] LSTM
   * [ ] Transformer
+  * [ ] GRU
