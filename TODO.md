@@ -6,15 +6,14 @@
   * [X] Fix bug of metric
   * [ ] Add metrics of features
 * [ ] Model
+  * [ ] use h7(time)
   * [ ] LSTM
     * [X] base
-    * [ ] residual network
-    * [ ] replace linear with lstm
-    * [ ] use h7(time)
-    * [ ] batch normalize
+    * [X] residual network
+    * [X] replace linear with lstm
   * [ ] Transformer
     * [X] base
-    * [ ] Decoder only
+    * ~~ Decoder only~~
   * [ ] GRU
     * [X] base
   * [ ] CNN
