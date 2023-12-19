@@ -49,7 +49,8 @@ class Trainer:
             weight_decay=args.weight_decay
         )
         lr_scheduler = torch.optim.lr_scheduler.LinearLR(
-            optimizer, total_iters=total_batch_num
+            optimizer, total_iters=total_batch_num, 
+            start_factor=1, end_factor=0,
         )
         
         model.to(self.device)
