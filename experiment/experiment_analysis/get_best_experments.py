@@ -62,14 +62,13 @@ def get_best_experiments(experiments_res_path, mode:str):
         # 至少有一个指标更小且至多不能有指标更大
         if (t_mse_t < t_mse and t_mae_t <= t_mae) or (t_mse_t <= t_mse and t_mae_t < t_mae):
             test_metric,best_metric,hyperparams,train_output = test_metric_tmp,best_metric_tmp, hyperparams_tmp,train_output_tmp
-            res_test_path = outer_folder
     agg_res = {
         "test_metric": test_metric,
         "best_metric": best_metric,
         "train_output": train_output,
         "hyperparams": hyperparams
     }
-    with open(path(code_run_path + 'experiment/experiment_analysis/result/' + outer_folder + '.json'), 'w') as file:
+    with open(path(code_run_path + 'experiment/experiment_analysis/result/' + mode + '_'+ outer_folder + '.json'), 'w') as file:
         json.dump(agg_res, file, indent=4)
             
 
@@ -79,4 +78,6 @@ if __name__ == '__main__':
     os.chdir(code_run_path)
     sys.path.insert(0, code_run_path)
     experiments_res_path = code_run_path + 'log_space/'
-    get_best_experiments(experiments_res_path,"transformer")
+    model_names = ['lstm','transformer','gru']
+    for model_name in model_names:
+        get_best_experiments(experiments_res_path,model_name)
