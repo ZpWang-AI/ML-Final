@@ -7,15 +7,15 @@
   * [ ] Add metrics of features
 * [ ] Model
   * [ ] use h7(time)
-  * [ ] LSTM
+  * [X] LSTM
     * [X] base
     * [X] residual network
     * [X] replace linear with lstm
-  * [ ] Transformer
+  * [X] Transformer
     * [X] base
     * ~~ Decoder only~~
   * [ ] GRU
-    * [X] base
+    * [ ] base
   * [ ] CNN
 * [ ] Experiment
 * [ ] Result analyse
@@ -26,7 +26,6 @@
 * [ ] Data
   * [X] Basic preprocess
   * [X] Data analysis note
-  * [ ] Check the data processor of "Informer"
   * [ ] Visualize result
     * [ ] prediciton
     * [ ] train loss
@@ -35,6 +34,12 @@
 ## zhch
 
 * [ ] Reference
+
   * [X] Paper
   * [ ] Reading note
   * [X] Code
+* [ ] Experiments
+
+  * [ ] LSTM
+  * [ ] Transformer
+  * [ ] GRU

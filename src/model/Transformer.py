@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from model.criterion import SMAPELoss
+from model.criterion import SMAPELoss, MSELoss
 
 
 class Transformer(nn.Module):
@@ -32,7 +32,8 @@ class Transformer(nn.Module):
         )
         
         self.linear = nn.Linear(channels, data_dim)
-        self.criterion = SMAPELoss(mean_dim=(0,1))
+        # self.criterion = SMAPELoss(mean_dim=(0,1))
+        self.criterion = MSELoss(mean_dim=(0,1))
     
     def get_pos_emb(self, emb, embed_layer):
         batch_size, sequence_len, channels = emb.shape

@@ -47,10 +47,12 @@ def server_experiment_args():
     args.save_ckpt = False
     
     # ===== TODO: modify args below, don't modify args above =====
+    args.version = 'b'
     args.model = 'transformer'
     args.model_config = TransformerConfig(
         channels=128, num_layers=3, nhead=8, dropout=0.,
     )
+    args.learning_rate = 1e-4
     # ============================================================
     return args
     
@@ -64,6 +66,7 @@ if __name__ == '__main__':
         todo_args.prepare_gpu(target_mem_mb=-1)
         todo_args.complete_path(
             show_cur_time=True,
+            show_model=True,
             show_server_name=False,
         )
             
@@ -93,6 +96,7 @@ if __name__ == '__main__':
                 todo_args.cuda_cnt = cuda_cnt
                 todo_args.complete_path(
                     show_cur_time=True,
+                    show_model=True,
                     show_server_name=False,
                 )
                 
