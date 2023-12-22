@@ -44,7 +44,7 @@ class GRU(nn.Module):
             h, ht = self.gru(x)
             m = h[:, 95:-1, ]
             pred = self.classifier(m)
-            loss = self.criterion(pred, y)/y.shape[0]
+            loss = self.criterion(pred, y)
         else:
             x, y = inputs[:, :96, ], inputs[:, 96:, ]
             h, ht = self.gru(x)
@@ -53,6 +53,6 @@ class GRU(nn.Module):
             while pred.shape[1] < y.shape[1]:
                 h, ht = self.gru(pred[:, -1:, ], ht)
                 pred = torch.concat([pred, self.classifier(h)], dim=1)
-            loss = self.criterion(pred, y)/y.shape[0]
+            loss = self.criterion(pred, y)
         return {'pred': pred, 'gt': y, 'loss': loss}
 

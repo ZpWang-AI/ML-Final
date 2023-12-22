@@ -6,17 +6,16 @@
   * [X] Fix bug of metric
   * [ ] Add metrics of features
 * [ ] Model
-  * [ ] LSTM
+  * [ ] use h7(time)
+  * [X] LSTM
     * [X] base
-    * [ ] residual network
-    * [ ] replace linear with lstm
-    * [ ] use h7(time)
-    * [ ] batch normalize
-  * [ ] Transformer
+    * [X] residual network
+    * [X] replace linear with lstm
+  * [X] Transformer
     * [X] base
-    * [ ] Decoder only
+    * ~~ Decoder only~~
   * [ ] GRU
-    * [X] base
+    * [ ] base
   * [ ] CNN
 * [ ] Experiment
 * [ ] Result analyse
@@ -27,7 +26,6 @@
 * [ ] Data
   * [X] Basic preprocess
   * [X] Data analysis note
-  * [ ] Check the data processor of "Informer"
   * [ ] Visualize result
     * [ ] prediciton
     * [ ] train loss
@@ -36,6 +34,12 @@
 ## zhch
 
 * [ ] Reference
+
   * [X] Paper
   * [ ] Reading note
   * [X] Code
+* [ ] Experiments
+
+  * [ ] LSTM
+  * [ ] Transformer
+  * [ ] GRU

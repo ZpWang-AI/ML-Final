@@ -49,7 +49,8 @@ class Trainer:
             weight_decay=args.weight_decay
         )
         lr_scheduler = torch.optim.lr_scheduler.LinearLR(
-            optimizer, total_iters=total_batch_num
+            optimizer, total_iters=total_batch_num, 
+            start_factor=1, end_factor=0,
         )
         
         model.to(self.device)
@@ -200,7 +201,7 @@ class Trainer:
         for json_file_name in LOG_FILENAME_DICT.values():
             if json_file_name == LOG_FILENAME_DICT['hyperparams']:
                 continue
-            metric_analysis = analyze_metrics_json(args.log_dir, json_file_name, just_average=True)
+            metric_analysis = analyze_metrics_json(args.log_dir, json_file_name)
             if metric_analysis:
                 main_logger.log_json(metric_analysis, json_file_name, log_info=False)
         
