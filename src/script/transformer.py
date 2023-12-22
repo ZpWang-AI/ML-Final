@@ -1,7 +1,7 @@
 # ===== prepare server_name, root_fold =====
 SERVER_NAME = 'cu01_'
 if SERVER_NAME in ['cu12_', 'cu13_', 'cu01_']:
-    ROOT_FOLD_IDRR = '/home/chongz/programFile/ML-Final-Test/ML-Final/'
+    ROOT_FOLD = '/home/chongz/programFile/ML-Final-Test/ML-Final/'
 # elif SERVER_NAME == :
 #     ROOT_FOLD_IDRR = ''
 else:
@@ -26,7 +26,7 @@ def server_base_args(test_setting=False) -> CustomArgs:
     # file path
     args.data_path = ROOT_FOLD+f'data/data_96-96/'
     args.cache_dir = ''
-    args.ckpt_dir = '/home/zpwang/ML-Final/ckpt_space/'  # TODO: consume lots of memory
+    args.ckpt_dir = '/home/chongz/programFile/ML-Final-Test/ML-Final/ckpt_space/'  # TODO: consume lots of memory
     if test_setting:
         args.log_dir = ROOT_FOLD+'log_space_test/'
     else:
@@ -81,26 +81,31 @@ if __name__ == '__main__':
         cuda_id = CustomArgs().prepare_gpu(target_mem_mb=10500, gpu_cnt=cuda_cnt) 
         from main import Trainer
         
-        for epoch in [5,10,20,30]:
-            for milli in [1,5,10,15,20]:
-                todo_args = server_experiment_args()
+        epochs = [10,15,20,25,30]
+        millis = [1,5,10,15,20]
+        for epoch, milli in zip(epochs, millis):
+            todo_args = server_experiment_args()
 
-                # === TODO: prepare args ===
-                todo_args.version = f'epoch{epoch}_lr{milli}milli'
-                todo_args.epochs = epoch
-                todo_args.learning_rate = float(f'{milli}e-3') 
-                todo_args.train_batch_size = 32   
-                # === TODO: prepare args ===
-                
-                todo_args.cuda_id = cuda_id
-                todo_args.cuda_cnt = cuda_cnt
-                todo_args.complete_path(
-                    show_cur_time=True,
-                    show_server_name=False,
-                )
-                
-                Trainer.main(todo_args)
+            # === TODO: prepare args ===
+            # todo_args.model_config = TransformerConfig(channels=channels,
+            #                                            num_layers=num_layers,
+            #                                            nhead=8,
+            #                                            dropout=dropout)
+            todo_args.version = f'epoch{epoch}_lr{milli}milli_batch_channels_numlayers_dropout_transformer'
+            todo_args.epochs = epoch
+            todo_args.learning_rate = float(f'{milli}e-4') 
+            todo_args.train_batch_size = 32   
+            # === TODO: prepare args ===
+            
+            todo_args.cuda_id = cuda_id
+            todo_args.cuda_cnt = cuda_cnt
+            todo_args.complete_path(
+                show_cur_time=True,
+                show_server_name=False,
+            )
+            
+            Trainer().main(todo_args)
 
-    experiment_once()
-    # experiment_multi_times()
+    # experiment_once()
+    experiment_multi_times()
     pass
