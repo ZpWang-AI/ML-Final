@@ -1,7 +1,6 @@
 # ===== TODO: prepare server_name, root_fold, ckpt_space =====
 SERVER_NAME = 'cu12_'  # doesn't matter, just for record. end with "_"
 ROOT_FOLD = '/data/zpwang/ML-Final/'  # where this repository is located
-CKPT_SPACE = '/home/zpwang/ML-Final/ckpt_space/'  # where checkpoints are saved. consume lots of memory
 # ============================================================
 
 import os, sys
@@ -20,10 +19,11 @@ def server_base_args(test_setting=False) -> CustomArgs:
     args.version = 'test' if test_setting else 'base'
     args.server_name = SERVER_NAME
     
-    # file path
-    args.data_path = ROOT_FOLD+f'data/data_96-96/'
-    args.cache_dir = ''
-    args.ckpt_dir = CKPT_SPACE
+    # ===== TODO: set file path =====
+    args.data_path = ROOT_FOLD+f'data/data_scale_96-96/'
+    args.ckpt_dir = '/home/zpwang/ML-Final/ckpt_space/'  # where checkpoints are saved. consume lots of memory
+    args.cache_dir = ''  # ignore this
+    # ===============================
     if test_setting:
         args.log_dir = ROOT_FOLD+'log_space_test/'
     else:
