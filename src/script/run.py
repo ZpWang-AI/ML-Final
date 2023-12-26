@@ -45,12 +45,13 @@ def server_experiment_args():
     args.weight_decay = 0.01
     args.learning_rate = 1e-3
     
-    # ===== TODO: modify args below, don't modify args above =====
-    args.model = 'lstm'
-    # args.model_config = TransformerConfig(
-    #     channels=128, num_layers=3, nhead=8, dropout=0.,
-    # )
-    # ============================================================
+    args.version = 'base'
+    # ============================================
+    args.model_name = 'transformer'
+    args.model_config = TransformerConfig(
+        channels=128, num_layers=3, nhead=8, dropout=0.,
+    )
+    args.epochs = 12
     return args
     
     

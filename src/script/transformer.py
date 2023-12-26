@@ -51,7 +51,7 @@ def server_experiment_args():
     
     # ===== TODO: modify args below, don't modify args above =====
     args.version = 'b'
-    args.model = 'transformer'
+    args.model_name = 'transformer'
     args.model_config = TransformerConfig(
         channels=128, num_layers=3, nhead=8, dropout=0.,
     )
