@@ -13,7 +13,7 @@ from typing import *
 from pathlib import Path as path
 from transformers import set_seed
 
-from utils import catch_and_record_error
+from utils import catch_and_record_error, count_parameters
 from arguments import CustomArgs
 from logger import CustomLogger, LOG_FILENAME_DICT
 from data import CustomData, DataLoader
@@ -75,6 +75,12 @@ class Trainer:
                 optimizer.zero_grad()
                 progress_bar.update()
                 
+                if loss.detach().cpu().numpy() == np.nan:
+                    try:
+                        raise Exception(f'nan loss.\n  inputs:{str(inputs)}\n  output:{str(output)}')
+                    except:
+                        catch_and_record_error(logger.log_dir/'error.out')
+                
                 total_loss += loss
                 log_loss += loss
                 if not cur_batch_num % args.log_steps:
@@ -85,6 +91,7 @@ class Trainer:
                     }
                     log_loss = 0
                     logger.log_json(cur_log, LOG_FILENAME_DICT['loss'], log_info=False, mode='a')
+                    
                 if not cur_batch_num % args.eval_steps:
                     progress_bar.display()
                     metrics = self.evaluate(model, data.dev_dataloader, compute_metrics)
@@ -128,7 +135,12 @@ class Trainer:
         model.train()
         return compute_metrics(pred, gt)
     
-    def main_one_iteration(self, args:CustomArgs, data:CustomData, training_iter_id=0):
+    def main_one_iteration(
+        self, 
+        args:CustomArgs, 
+        data:CustomData,
+        training_iter_id=0,
+    ):
         # === prepare === 
         if 1:
             # seed
@@ -146,7 +158,7 @@ class Trainer:
                 print_output=True,
             )
             
-            model = get_model(args.model, args.model_config)
+            model = get_model(args.model_name, args.model_config)
             
             compute_metrics = ComputeMetrics(feature_list=data.feature_list)
         
@@ -184,6 +196,9 @@ class Trainer:
             data.train_dataset, data.dev_dataset, data.test_dataset
         ])
         
+        model = get_model(model_name=args.model_name, model_config=args.model_config)
+        args.model_parameter_cnt = count_parameters(model)
+        
         main_logger = CustomLogger(args.log_dir, logger_name=f'{args.cur_time}_main_logger', print_output=True)  
         main_logger.log_json(dict(args), LOG_FILENAME_DICT['hyperparams'], log_info=True)
         
@@ -213,15 +228,15 @@ if __name__ == '__main__':
         args.version = 'test'
         args.server_name = 'local'
         
-        args.data_path = path(__file__).parent.parent / r'data\data_96-96'
+        args.data_path = path(__file__).parent.parent / r'data\data_scale_96-96'
         args.data_path = str(args.data_path)
         
-        args.model = 'lstm'
+        args.model_name = 'lstm'
         args.ckpt_dir = './ckpt_space/'
         args.log_dir = './log_space/'
 
-        args.model = 'transformer'
-        args.model_config = TransformerConfig()
+        # args.model_name = 'transformer'
+        # args.model_config = TransformerConfig()
         return args
     
     args = local_test_args()
