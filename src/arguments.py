@@ -37,13 +37,14 @@ class CustomArgs:
         
         # ========== model =========================
         self.part3 = 'model'
-        self.model = 'lstm'
+        self.model_name = 'lstm'
         self.model_config:dict = LSTMConfig(
             data_dim=7,
             hidden_size=128,
             num_layers=3,
             dropout=0.,
         )
+        self.model_parameter_cnt = 0
         
         # ========== loss ==========================
         self.part4 = 'loss'
@@ -104,7 +105,7 @@ class CustomArgs:
         if show_cur_time:
             specific_fold_name.append(self.cur_time)
         if show_model:
-            specific_fold_name.append(self.model)
+            specific_fold_name.append(self.model_name)
         if show_server_name:
             specific_fold_name.append(self.server_name)
         specific_fold_name.append(self.version)
@@ -145,7 +146,7 @@ class CustomArgs:
         # self.ckpt_dir
         # self.log_dir
         
-        assert path(self.data_path).exists(), 'wrong data path'
+        assert path(self.data_path).exists(), f'wrong data path: {self.data_path}'
         data_type = str(self.data_path).split('_')[-1]
         if '96-96' in data_type:
             self.data_type = '96-96'

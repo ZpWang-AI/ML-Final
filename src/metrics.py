@@ -24,7 +24,6 @@ class ComputeMetrics:
         """
         
         res = {
-            # 'Acc': accuracy_score(labels, predictions),
             'MSE': cal_MSE(pred, gt),
             'MAE': cal_MAE(pred, gt),
         }
