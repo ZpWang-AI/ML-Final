@@ -48,7 +48,7 @@ def server_experiment_args():
     
     # ===== TODO: modify args below, don't modify args above =====
     args.version = 'b'
-    args.model = 'lstm'
+    args.model_name = 'lstm'
     args.model_config = LSTMConfig(
         hidden_size=128, num_layers=3, dropout=0.,
     )
