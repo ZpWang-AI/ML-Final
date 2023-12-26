@@ -100,7 +100,7 @@ if __name__ == '__main__':
                     show_server_name=False,
                 )
                 
-                Trainer.main(todo_args)
+                Trainer().main(todo_args)
 
     # ===== TODO: choose func to do experiments =====
     experiment_once()
