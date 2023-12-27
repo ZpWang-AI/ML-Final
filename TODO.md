@@ -8,13 +8,16 @@
 * [ ] Model
   * [ ] use h7(time)
   * [X] LSTM
+
     * [X] base
     * [X] residual network
     * [X] replace linear with lstm
   * [X] Transformer
+
     * [X] base
-    * ~~ Decoder only~~
+    * [ ] ~~Decoder only~~
   * [ ] GRU
+
     * [ ] base
   * [ ] CNN
 * [ ] Experiment
