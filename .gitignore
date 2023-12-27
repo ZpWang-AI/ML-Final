@@ -17,12 +17,13 @@ nohup.out
 data/**/*.csv
 !data/raw_data/ETTh1.csv
 
-!experiment/**/visualize.ipynb
 experiment/log_space/**
 !experiment/log_space/*.zip
+!experiment/**/visualize.ipynb
+
+references/references code/Informer2020
 
 log_space
 ckpt_space
 src/script/**
-
 !src/model/_test_model.py
