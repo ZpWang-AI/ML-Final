@@ -155,7 +155,8 @@ if __name__ == '__main__':
     sys.path.insert(0, code_run_path)
     experiments_res_path = code_run_path + 'log_space/'
     model_names = ['lstm','transformer','gru']
-    metrics = ['test_MSE','test_MAE','test_MSE_std','test_MAE_std',]
+    # metrics = ['test_MSE','test_MAE','test_MSE_std','test_MAE_std']
+    metrics = ['test_MSE']
 
     # create result for every model
     for model_name in model_names:
@@ -165,8 +166,8 @@ if __name__ == '__main__':
             assert os.path.exists(path(tpp)), "path not exists"
 
     # compare all metrics, then get the experiment result
-    for model_name in model_names:
-        get_best_experiments(experiments_res_path,model_name)
+    # for model_name in model_names:
+    #     get_best_experiments(experiments_res_path,model_name)
     
     # compare single metric, then get the experiment result
     for model_name in model_names:
