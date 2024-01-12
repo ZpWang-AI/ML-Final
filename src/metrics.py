@@ -2,11 +2,11 @@ import numpy as np
 
 
 def cal_MSE(mat1, mat2):
-    mse = ((mat1-mat2)**2).mean(axis=(0,1,2)).sum()
+    mse = ((mat1-mat2)**2).mean()
     return float(mse)
 
 def cal_MAE(mat1, mat2):
-    mae = (np.abs(mat1-mat2)).mean(axis=(0,1,2)).sum()
+    mae = (np.abs(mat1-mat2)).mean()
     return float(mae)
 
 
