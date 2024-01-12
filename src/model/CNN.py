@@ -25,22 +25,36 @@ class CNN(nn.Module):
     def __init__(
         self,
         data_dim,
-        num_layers,
+        hidden_channels,
         dropout,
     ) -> None:
         super().__init__()
         self.data_dim = data_dim
         
-        blocks = [
-            CNNBlock(nn.Conv2d(1,1,(8,data_dim)), dropout=dropout),
-            CNNBlock(nn.Conv2d(1,1,(4,1),dilation=8), dropout=dropout),
-        ]
-        for _ in range(num_layers):
-            blocks.append(CNNBlock(nn.Conv2d(1,1,(3,1),padding=(1,0),), dropout=dropout))
-        blocks.append(CNNBlock(nn.Conv2d(1, data_dim, (3,1), dilation=32), norm=False))
-        self.cnn = nn.Sequential(*blocks)
+        self.kernel_sizes = [8,4,3]
+        self.cnn = nn.Sequential(
+            CNNBlock(nn.Conv2d(1,hidden_channels,(self.kernel_sizes[0],data_dim)), dropout=dropout),
+            CNNBlock(nn.Conv2d(hidden_channels,hidden_channels,(self.kernel_sizes[1],1)), dropout=dropout),
+            CNNBlock(nn.Conv2d(hidden_channels, data_dim, (self.kernel_sizes[2],1)), norm=False)
+        )
+        self.train()
         
         self.criterion = MSELoss(mean_dim=(0,1))
+    
+    def train(self, mode=True):
+        super().train(mode=mode)
+        if mode:
+            dilation = 1
+            for kernel_size, block in zip(self.kernel_sizes, self.cnn):
+                conv = block.block[0]
+                conv.dilation = (dilation, dilation)
+                dilation *= kernel_size
+                conv.stride = (1,1)
+        else:
+            for kernel_size, block in zip(self.kernel_sizes, self.cnn):
+                conv = block.block[0]
+                conv.stride = (kernel_size, kernel_size)
+                conv.dilation = (1,1)
     
     def forward(self, inputs:torch.Tensor):
         """
