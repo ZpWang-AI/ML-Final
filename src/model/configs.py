@@ -65,6 +65,18 @@ class MLPConfig(ModelConfig):
         self.dropout = dropout
 
 
+class CNNConfig(ModelConfig):
+    def __init__(
+        self,
+        data_dim=7,
+        num_layers=3,
+        dropout=0.,
+    ) -> None:
+        self.data_dim = data_dim
+        self.num_layers = num_layers
+        self.dropout = dropout
+        
+
 if __name__ == '__main__':
     def generate_config(s):
         items = [i.strip().strip(',')for i in s.split() if i.strip()]

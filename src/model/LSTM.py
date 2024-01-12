@@ -31,6 +31,7 @@ class LSTM(nn.Module):
     def forward(self, inputs:torch.Tensor):
         """
         inputs: [batch size, seq length, 8]
+            train
         x:      [batch size, seq length, data_dim]
         y:      [batch size, 96/336,     data_dim]
         h:      [batch size, seq length, data_dim]
@@ -38,6 +39,14 @@ class LSTM(nn.Module):
         ct:     [num layers, batch size, hidden size]
         m:      [batch size, 96/336,     hidden size]
         pred:   [batch size, 96/336,     data_dim]
+            eval
+        x:      [batch size, 96,          data_dim]
+        y:      [batch size, 96/336,      data_dim]
+        h:      [batch size, 96/1,      data_dim]
+        ht:     [num layers, batch size,  hidden size]
+        ct:     [num layers, batch size,  hidden size]
+        m:      [batch size, 1,           hidden size]
+        pred:   [batch size, 1 -> 96/336, data_dim]
         """
         inputs = inputs[..., :self.data_dim]
         if self.training:
