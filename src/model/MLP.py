@@ -39,52 +39,55 @@ class MLP(nn.Module):
     ) -> None:
         super().__init__()
         self.data_dim = data_dim
-        self.hidden_size = hidden_size
-        self.num_layers = num_layers
-        self.dropout = dropout
         
-        self.mlp = None
-        self.seq_len_out = 96
-        self._init_model(96, self.seq_len_out)
+        if num_layers == 1:
+            layers = [MLPBlock(data_dim*96, data_dim)]
+        else:
+            layers = [MLPBlock(data_dim*96, hidden_size, dropout)]
+            layers.extend([MLPBlock(hidden_size, hidden_size, dropout)]*(num_layers-2))
+            layers.append(MLPBlock(hidden_size, data_dim))
+        self.mlp = nn.Sequential(*layers)
         
         self.criterion = MSELoss(mean_dim=(0,1))
     
-    def _init_model(self, seq_len_in, seq_len_out):
-        in_features = self.data_dim*seq_len_in
-        out_features = self.data_dim*seq_len_out
-        
-        if self.num_layers == 1:
-            layers = [MLPBlock(in_features, out_features)]
-        else:
-            layers = [MLPBlock(in_features, self.hidden_size, self.dropout)]
-            for _ in range(self.num_layers-1):
-                layers.append(MLPBlock(self.hidden_size, self.hidden_size, self.dropout))
-            layers.append(MLPBlock(self.hidden_size, out_features))
-            
-        self.mlp = nn.Sequential(*layers)
+    def model_forward(self, x):
+        """
+        input:  [batch size, 96, data_dim]
+        output: [batch size, 1,  data_dim]
+        """
+        batch_size = x.shape[0]
+        x = x.reshape(batch_size, -1)
+        x = self.mlp(x)
+        return x.unsqueeze(1)
     
     def forward(self, inputs:torch.Tensor):
         """
         inputs: [batch size, seq length, 8]
-        x:      [batch size, 96,         data_dim]
         y:      [batch size, 96/336,     data_dim]
-        input_x:[batch size, 96*data_dim]
-        output: [batch size, 96/336*data_dim]
-        pred:   [batch size, 96/336,     data_dim]
-        """
-        seq_len_in = 96
-        seq_len_out = inputs.shape[1]-seq_len_in
-        if seq_len_out != self.seq_len_out:
-            self.seq_len_out = seq_len_out
-            self._init_model(seq_len_in, seq_len_out)
-            
+            train
+        x:      [batch size, 96,          data_dim]
+        pred:   [batch size, 0 -> 96/336, data_dim]
+            eval
+        x:      [batch size, 96,          data_dim]
+        nxt:    [batch size, 1,           data_dim]
+        pred:   [batch size, 0 -> 96/336, data_dim]
+        """ 
         inputs = inputs[..., :self.data_dim]
-        x = inputs[:, :96, ]
         y = inputs[:, 96:, ]
+        y_len = y.shape[1]
         
-        input_x = x.reshape(-1, 96*self.data_dim)
-        output = self.mlp(input_x)
-        pred = output.reshape(-1, seq_len_out, self.data_dim)
+        if self.training:
+            pred = torch.zeros((y.shape[0], 0, self.data_dim))
+            for p in range(y_len):
+                x = inputs[:, p:p+96, ]
+                pred = torch.concat((pred, self.model_forward(x)), dim=1)
+        else:
+            x = inputs[:, :96, ]
+            pred = torch.zeros((y.shape[0], 0, self.data_dim))
+            for p in range(y_len):
+                nxt = self.model_forward(x)
+                pred = torch.concat((pred, nxt), dim=1)
+                x = torch.concat((x[:, 1:, ], nxt), dim=1)
         
         loss = self.criterion(pred, y)
         return {'pred':pred, 'gt':y, 'loss':loss}
