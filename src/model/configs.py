@@ -30,7 +30,7 @@ class TransformerConfig(ModelConfig):
         nhead=8,
         dropout=0.1,
     ) -> None:
-        self.data_dim = 7
+        self.data_dim = data_dim
         self.channels = channels
         self.num_layers = num_layers
         self.nhead = nhead
@@ -42,6 +42,20 @@ class GRUConfig(ModelConfig):
         self,
         data_dim=7,
         hidden_size=128,
+        num_layers=3,
+        dropout=0.,
+    ) -> None:
+        self.data_dim = data_dim
+        self.hidden_size = hidden_size
+        self.num_layers = num_layers
+        self.dropout = dropout
+        
+
+class MLPConfig(ModelConfig):
+    def __init__(
+        self,
+        data_dim=7,
+        hidden_size=1280,
         num_layers=3,
         dropout=0.,
     ) -> None:

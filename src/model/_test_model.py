@@ -27,3 +27,4 @@ def test_model(sample_net):
 # test_model(LSTMWithoutLinear(**LSTMConfig()))
 # test_model(Transformer(**TransformerConfig()))
 # test_model(GRU(**GRUConfig()))
+test_model(MLP(**MLPConfig()))
