@@ -69,7 +69,7 @@ class CNNConfig(ModelConfig):
     def __init__(
         self,
         data_dim=7,
-        hidden_channels=4,
+        hidden_channels=32,
         dropout=0.,
     ) -> None:
         self.data_dim = data_dim
