@@ -14,18 +14,12 @@ class MLPBlock(nn.Module):
             layers.append(nn.Dropout(dropout))
         self.block = nn.Sequential(*layers)
         
-        if in_features != out_features:
-            self.conv = nn.Conv1d(in_channels=in_features, out_channels=out_features, kernel_size=1)
-        else:
-            self.conv = None
+        self.residual = in_features == out_features
         
     def forward(self, x):
         y = self.block(x)
-        if self.conv:
-            x = x.unsqueeze(-1)
-            x = self.conv(x)
-            x = x.squeeze(-1)
-        y += x
+        if self.residual:
+            y += x
         return y
 
 
@@ -52,13 +46,13 @@ class MLP(nn.Module):
     
     def model_forward(self, x):
         """
-        input:  [batch size, 96, data_dim]
-        output: [batch size, 1,  data_dim]
+        x:      [batch size, 96, data_dim]
+        return: [batch size, 1,  data_dim]
         """
         batch_size = x.shape[0]
         x = x.reshape(batch_size, -1)
-        x = self.mlp(x)
-        return x.unsqueeze(1)
+        output = self.mlp(x)
+        return output.unsqueeze(1)
     
     def forward(self, inputs:torch.Tensor):
         """
@@ -74,17 +68,17 @@ class MLP(nn.Module):
         """ 
         inputs = inputs[..., :self.data_dim]
         y = inputs[:, 96:, ]
-        y_len = y.shape[1]
+        _, y_len, _ = y.shape
         
         if self.training:
-            pred = torch.zeros((y.shape[0], 0, self.data_dim))
-            for p in range(y_len):
-                x = inputs[:, p:p+96, ]
-                pred = torch.concat((pred, self.model_forward(x)), dim=1)
+            pred = torch.concat(
+                [self.model_forward(inputs[:, p:p+96, ])for p in range(y_len)],
+                dim=1,
+            )
         else:
             x = inputs[:, :96, ]
-            pred = torch.zeros((y.shape[0], 0, self.data_dim))
-            for p in range(y_len):
+            pred = torch.zeros((y.shape[0], 0, self.data_dim), device=inputs.device)
+            for _ in range(y_len):
                 nxt = self.model_forward(x)
                 pred = torch.concat((pred, nxt), dim=1)
                 x = torch.concat((x[:, 1:, ], nxt), dim=1)

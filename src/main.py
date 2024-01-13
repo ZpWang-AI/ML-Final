@@ -235,8 +235,8 @@ if __name__ == '__main__':
         args.ckpt_dir = './ckpt_space/'
         args.log_dir = './log_space/'
 
-        # args.model_name = 'transformer'
-        # args.model_config = TransformerConfig()
+        args.model_name = 'mlp'
+        args.model_config = MLPConfig()
         return args
     
     args = local_test_args()

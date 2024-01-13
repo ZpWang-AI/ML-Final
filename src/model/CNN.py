@@ -78,7 +78,7 @@ class CNN(nn.Module):
             pred = h.transpose(1,2).squeeze(-1)[:, :-1, ]
         else:
             x = inputs[:, :96, ].unsqueeze(1)
-            pred = torch.zeros((inputs.shape[0], 0, self.data_dim))
+            pred = torch.zeros((inputs.shape[0], 0, self.data_dim), device=inputs.device)
             for _ in range(y.shape[1]):
                 h = self.cnn(x)
                 pred = torch.concat((pred, h.transpose(1,2).squeeze(-1)), dim=1)
