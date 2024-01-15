@@ -4,9 +4,11 @@ sys.path.insert(0, str(path(__file__).parent.parent))
 
 import time
 from model import *
+from utils import count_parameters
 
 def test_model(sample_net):
     print(sample_net)
+    print('param num', count_parameters(sample_net))
     import torch
     sample_inputs = torch.rand((5, 96+336, 8))
     start_time = time.time()
@@ -27,5 +29,5 @@ def test_model(sample_net):
 # test_model(LSTMWithoutLinear(**LSTMConfig()))
 # test_model(Transformer(**TransformerConfig()))
 # test_model(GRU(**GRUConfig()))
-test_model(MLP(**MLPConfig()))
-# test_model(CNN(**CNNConfig()))
+# test_model(MLP(**MLPConfig()))
+test_model(CNN(**CNNConfig()))

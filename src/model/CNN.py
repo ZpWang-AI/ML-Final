@@ -26,18 +26,28 @@ class CNN(nn.Module):
         self,
         data_dim,
         hidden_channels,
+        kernel_sizes,
         dropout,
     ) -> None:
         super().__init__()
         self.data_dim = data_dim
         
-        self.kernel_sizes = [2,3,4,4]
-        self.cnn = nn.Sequential(
-            CNNBlock(nn.Conv1d(data_dim,        hidden_channels, self.kernel_sizes[0]), dropout=dropout),
-            CNNBlock(nn.Conv1d(hidden_channels, hidden_channels, self.kernel_sizes[1]), dropout=dropout),
-            CNNBlock(nn.Conv1d(hidden_channels, hidden_channels, self.kernel_sizes[2]), dropout=dropout),
-            CNNBlock(nn.Conv1d(hidden_channels, data_dim,        self.kernel_sizes[3]), norm=False)
-        )
+        mul = 1
+        for d in kernel_sizes:
+            mul *= d
+        assert mul == 96 and len(kernel_sizes) >= 2
+        self.kernel_sizes = kernel_sizes
+
+        blocks = []
+        for p, ks in enumerate(kernel_sizes):
+            if p == 0:
+                cur_block = CNNBlock(nn.Conv1d(data_dim, hidden_channels, ks), dropout=dropout)
+            elif p != len(kernel_sizes)-1:
+                cur_block = CNNBlock(nn.Conv1d(hidden_channels, hidden_channels, ks), dropout=dropout)
+            else:
+                cur_block = CNNBlock(nn.Conv1d(hidden_channels, data_dim, ks), norm=False)
+            blocks.append(cur_block)
+        self.cnn = nn.Sequential(*blocks)
         self.train()
         
         self.criterion = MSELoss(mean_dim=(0,1))
