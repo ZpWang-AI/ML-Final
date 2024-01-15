@@ -182,10 +182,10 @@ def get_single_best_experiments2(experiments_res_path, mode:str,metric:str):
         inner_folders = os.listdir(outer_path)
         
         
-        for inner_res_folder in inner_folders: # get all result file
+        for inner_res_folder in inner_folders: 
             final_path = experiments_res_path + outer_folder + '/' + inner_res_folder + '/'
             final_folders = os.listdir(final_path)
-            for final_res_file in final_folders:
+            for final_res_file in final_folders: # get all result file
                 final_path_file = final_path + final_res_file
                 
                 if final_res_file.endswith(".json"):
@@ -204,6 +204,7 @@ def get_single_best_experiments2(experiments_res_path, mode:str,metric:str):
             if metric__val_tmp > metric_val:
                 continue
             elif metric__val_tmp < metric_val or hyperparams_tmp["epochs"] < hyperparams["epochs"]:
+                res_path = inner_res_folder
                 test_metric,best_metric,hyperparams,train_output = test_metric_tmp,best_metric_tmp, hyperparams_tmp,train_output_tmp
 
     agg_res = {
@@ -212,7 +213,7 @@ def get_single_best_experiments2(experiments_res_path, mode:str,metric:str):
         "train_output": train_output,
         "hyperparams": hyperparams
     }
-    with open(path(result_root_path_single + mode + '/' + metric + '_'+ inner_res_folder + '.json'), 'w') as file:
+    with open(path(result_root_path_single + mode + '/' + metric + '_'+ res_path + '.json'), 'w') as file:
         json.dump(agg_res, file, indent=4)
 
 
