@@ -147,14 +147,80 @@ def get_best_experiments(experiments_res_path, mode:str):
     with open(path(result_root_path + mode + '_'+ outer_folder + '.json'), 'w') as file:
         json.dump(agg_res, file, indent=4)
             
+def get_single_best_experiments2(experiments_res_path, mode:str,metric:str):
+    """
+    this function is to get the single best metric experiment result
 
+    experiment_res_path: the log path
+    mode: model name
+    metric:one of the [test_MSE,test_MAE,test_MSE_std,test_MAE_std]
+    """
+
+    # dump result
+    best_metric = {"best_MSE": 10000000000.0,"best_MAE": 10000000000.0}
+    test_metric = {"test_MSE": 10000000000.0,"test_MAE": 10000000000.0,"test_MSE_std": 10000000000.0,"test_MAE_std": 10000000000.0}
+    hyperparams = {}
+    train_output = {}
+
+    # tmp
+    best_metric_tmp = {}
+    test_metric_tmp = {}
+    hyperparams_tmp = {}
+    train_output_tmp = {}
+
+
+    # agg result
+    outer_folders = os.listdir(experiments_res_path)
+    
+    for outer_folder in outer_folders: # get all kinds of hyperparameters--folder
+
+        # select the corresponding model result, if model_name and model retule not correspond,then next
+        if outer_folder != mode:
+            continue
+        outer_path = experiments_res_path + outer_folder + '/'
+        
+        inner_folders = os.listdir(outer_path)
+        
+        
+        for inner_res_folder in inner_folders: # get all result file
+            final_path = experiments_res_path + outer_folder + '/' + inner_res_folder + '/'
+            final_folders = os.listdir(final_path)
+            for final_res_file in final_folders:
+                final_path_file = final_path + final_res_file
+                
+                if final_res_file.endswith(".json"):
+                    with open(final_path_file) as file:
+                        result_json = json.load(file)
+                        if final_res_file.startswith("best"):
+                            best_metric_tmp = result_json
+                        elif final_res_file.startswith("test"):
+                            test_metric_tmp = result_json
+                        elif final_res_file.startswith("hyper"):
+                            hyperparams_tmp = result_json
+                        elif final_res_file.startswith("train"):
+                            train_output_tmp = result_json
+            metric_val,metric__val_tmp = test_metric[metric],test_metric_tmp[metric]
+
+            if metric__val_tmp > metric_val:
+                continue
+            elif metric__val_tmp < metric_val or hyperparams_tmp["epochs"] < hyperparams["epochs"]:
+                test_metric,best_metric,hyperparams,train_output = test_metric_tmp,best_metric_tmp, hyperparams_tmp,train_output_tmp
+
+    agg_res = {
+        "test_metric": test_metric,
+        "best_metric": best_metric,
+        "train_output": train_output,
+        "hyperparams": hyperparams
+    }
+    with open(path(result_root_path_single + mode + '/' + metric + '_'+ inner_res_folder + '.json'), 'w') as file:
+        json.dump(agg_res, file, indent=4)
 
 
 if __name__ == '__main__':
     os.chdir(code_run_path)
     sys.path.insert(0, code_run_path)
     experiments_res_path = code_run_path + 'log_space/'
-    model_names = ['lstm','transformer','gru']
+    model_names = ['lstm','transformer','gru','mlp']
     # metrics = ['test_MSE','test_MAE','test_MSE_std','test_MAE_std']
     metrics = ['test_MSE']
 
@@ -172,5 +238,5 @@ if __name__ == '__main__':
     # compare single metric, then get the experiment result
     for model_name in model_names:
         for metric in metrics:
-            get_single_best_experiments(experiments_res_path,model_name,metric)
+            get_single_best_experiments2(experiments_res_path,model_name,metric)
     
