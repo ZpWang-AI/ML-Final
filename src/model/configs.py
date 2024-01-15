@@ -70,10 +70,12 @@ class CNNConfig(ModelConfig):
         self,
         data_dim=7,
         hidden_channels=32,
+        kernel_sizes=(8,12),
         dropout=0.,
     ) -> None:
         self.data_dim = data_dim
         self.hidden_channels = hidden_channels
+        self.kernel_sizes = kernel_sizes
         self.dropout = dropout
         
 
