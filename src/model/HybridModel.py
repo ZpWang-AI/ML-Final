@@ -23,24 +23,24 @@ class MLPBlock(nn.Module):
         return y
 
 
-class MLP(nn.Module):
+class Hybrid(nn.Module):
     def __init__(
         self,
         data_dim,
-        hidden_size,
-        num_layers,
         dropout,
     ) -> None:
         super().__init__()
         self.data_dim = data_dim
         
-        if num_layers == 1:
-            layers = [MLPBlock(data_dim*96, data_dim)]
-        else:
-            layers = [MLPBlock(data_dim*96, hidden_size, dropout)]
-            layers.extend([MLPBlock(hidden_size, hidden_size, dropout)]*(num_layers-2))
-            layers.append(MLPBlock(hidden_size, data_dim))
-        self.mlp = nn.Sequential(*layers)
+        self.cnn = None
+        self.mlp = None
+        self.encoder = None
+        self.decoder = None
+        self.pos_emb = None
+        self.lstm = None
+        self.fc = None
+        
+        # self.hybrid = nn.Sequentia
         
         self.criterion = MSELoss(mean_dim=(0,1))
     
@@ -49,10 +49,7 @@ class MLP(nn.Module):
         x:      [batch size, 96, data_dim]
         return: [batch size, 1,  data_dim]
         """
-        batch_size = x.shape[0]
-        x = x.reshape(batch_size, -1)
-        output = self.mlp(x)
-        return output.unsqueeze(1)
+        pass
     
     def forward(self, inputs:torch.Tensor):
         """
@@ -67,21 +64,9 @@ class MLP(nn.Module):
         pred:   [batch size, 0 -> 96/336, data_dim]
         """ 
         inputs = inputs[..., :self.data_dim]
+        x = inputs[:, :96, ]
         y = inputs[:, 96:, ]
-        _, y_len, _ = y.shape
-        
-        if self.training:
-            pred = torch.concat(
-                [self.model_forward(inputs[:, p:p+96, ])for p in range(y_len)],
-                dim=1,
-            )
-        else:
-            x = inputs[:, :96, ]
-            pred = torch.zeros((y.shape[0], 0, self.data_dim), device=inputs.device)
-            for _ in range(y_len):
-                nxt = self.model_forward(x)
-                pred = torch.concat((pred, nxt), dim=1)
-                x = torch.concat((x[:, 1:, ], nxt), dim=1)
+        pred = self.model_forward(x)
         
         loss = self.criterion(pred, y)
         return {'pred':pred, 'gt':y, 'loss':loss}

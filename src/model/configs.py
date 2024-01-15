@@ -55,8 +55,8 @@ class MLPConfig(ModelConfig):
     def __init__(
         self,
         data_dim=7,
-        hidden_size=1280,
-        num_layers=3,
+        hidden_size=128,
+        num_layers=2,
         dropout=0.,
     ) -> None:
         self.data_dim = data_dim
@@ -64,6 +64,18 @@ class MLPConfig(ModelConfig):
         self.num_layers = num_layers
         self.dropout = dropout
 
+
+class CNNConfig(ModelConfig):
+    def __init__(
+        self,
+        data_dim=7,
+        hidden_channels=32,
+        dropout=0.,
+    ) -> None:
+        self.data_dim = data_dim
+        self.hidden_channels = hidden_channels
+        self.dropout = dropout
+        
 
 if __name__ == '__main__':
     def generate_config(s):

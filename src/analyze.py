@@ -23,9 +23,9 @@ def analyze_metrics_json(log_dir, file_name):
                     total_metrics[k].append(v)
     if not total_metrics:
         return {}
-    metric_analysis = (
-        {k:np.mean(v) for k,v in total_metrics.items()} |
-        {k+'_std':np.std(v) for k,v in total_metrics.items()}
+    metric_analysis = dict(
+        [(k, np.mean(v))for k,v in total_metrics.items()] +
+        [(k+'_std', np.std(v))for k,v in total_metrics.items()]
     )
     return metric_analysis
 
