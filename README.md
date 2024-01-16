@@ -23,19 +23,14 @@ This is the final project for the machine learning course.
    python run.py
    ```
 
-## Contributions
-
-Refer to the **Issues** and **TODO.md**.
-
 ## File Structure
 
 ```
 ML-Final
-|-TODO.md
 |-README.md
+|-requirements.txt
 |-data
-| |-data.ipynb
-| |-data.zip
+| |-raw_data
 | |-notes
 | | |-数据分析.md
 |-references
@@ -52,8 +47,15 @@ ML-Final
 | |-main.py
 | |-metrics.py
 | |-model
+| | |-__init__.py
+| | |-_test_model.py
 | | |-configs.py
 | | |-criterion.py
+| | |-LSTM.py
+| | |-Transformer.py
+| | |-GRU.py
+| | |-CNN.py
+| | |-ExtendedVecto.py
 | |-run.py
 | |-utils.py
 |-experiment
