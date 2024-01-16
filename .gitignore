@@ -23,6 +23,7 @@ experiment/log_space/**
 
 references/references code/Informer2020
 
+log_group
 log_space
 ckpt_space
 src/script/**
